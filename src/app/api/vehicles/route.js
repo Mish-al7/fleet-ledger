@@ -1,0 +1,37 @@
+import { NextResponse } from 'next/server';
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import dbConnect from '@/lib/dbConnect';
+import Vehicle from '@/models/Vehicle';
+
+export async function GET(req) {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session || session.user.role !== 'admin') {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        await dbConnect();
+        const vehicles = await Vehicle.find({}).sort({ vehicle_no: 1 });
+        return NextResponse.json({ success: true, data: vehicles });
+    } catch (error) {
+        return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+}
+
+export async function POST(req) {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session || session.user.role !== 'admin') {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        await dbConnect();
+        const body = await req.json();
+
+        const vehicle = await Vehicle.create(body);
+        return NextResponse.json({ success: true, data: vehicle }, { status: 201 });
+    } catch (error) {
+        return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+}
