@@ -23,8 +23,8 @@ node scripts/seed.mjs
 ```
 
 This creates:
-- **Admin**: admin@fleet.com / admin123
-- **Driver**: driver@fleet.com / driver123
+- **Admin**: admin@fleetledger.com / admin123
+- **Driver**: driver@fleetledger.com / driver123
 - 2 test vehicles
 - 3 sample trips
 
