@@ -91,4 +91,5 @@ Run verification scripts:
 node scripts/test-schemas.mjs  # Test schemas
 node scripts/test-ledger.mjs   # Test ledger logic
 node scripts/test-summary.mjs  # Test aggregations
+yes
 ```
