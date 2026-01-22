@@ -27,11 +27,13 @@ export default function DashboardPage() {
 
             if (json.success) {
                 setSummary(json.data);
+                setAvailableMonths(json.availableMonths || []);
 
-                // Extract unique months for filter
-                if (selectedMonth === 'all') {
-                    const months = [...new Set(json.data.map(item => item.month))].sort().reverse();
-                    setAvailableMonths(months);
+                // If no month is selected yet (and not explicitly 'all'), 
+                // default to the most recent month if available
+                if (selectedMonth === 'all' && json.availableMonths?.length > 0 && !sessionStorage.getItem('summary_filter_initialized')) {
+                    setSelectedMonth(json.availableMonths[0]);
+                    sessionStorage.setItem('summary_filter_initialized', 'true');
                 }
             }
         } catch (err) {
@@ -41,19 +43,36 @@ export default function DashboardPage() {
         }
     }
 
+    const formatMonth = (monthStr) => {
+        if (!monthStr || monthStr === 'all') return 'All Time';
+        const [year, month] = monthStr.split('-');
+        const date = new Date(year, parseInt(month) - 1);
+        return date.toLocaleString('default', { month: 'short', year: 'numeric' });
+    };
+
     // Calculate KPIs
     const totalIncome = summary.reduce((sum, item) => sum + item.total_income, 0);
     const totalExpenses = summary.reduce((sum, item) => sum + item.total_expenses, 0);
     const totalProfit = totalIncome - totalExpenses;
 
-    // Prepare chart data
-    const chartData = summary.map(item => ({
-        vehicle: item.vehicle_no,
-        vehicleId: item.vehicle_id,
-        income: item.total_income,
-        expenses: item.total_expenses,
-        profit: item.profit
-    }));
+    // Prepare aggregated chart data (one entry per vehicle)
+    const chartData = summary.reduce((acc, item) => {
+        const existing = acc.find(v => v.vehicleId === item.vehicle_id);
+        if (existing) {
+            existing.income += item.total_income;
+            existing.expenses += item.total_expenses;
+            existing.profit += item.profit;
+        } else {
+            acc.push({
+                vehicle: item.vehicle_no,
+                vehicleId: item.vehicle_id,
+                income: item.total_income,
+                expenses: item.total_expenses,
+                profit: item.profit
+            });
+        }
+        return acc;
+    }, []);
 
     const handleBarClick = (data) => {
         if (data && data.vehicleId) {
@@ -61,29 +80,81 @@ export default function DashboardPage() {
         }
     };
 
-    if (loading) return <div className="text-slate-500">Loading dashboard...</div>;
+    if (loading) return (
+        <div className="flex items-center justify-center min-h-[400px]">
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+        </div>
+    );
 
     return (
         <div className="space-y-8">
-            {/* Header with Filter */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            {/* Header */}
+            <div className="flex flex-col gap-6">
                 <div>
                     <h1 className="text-3xl font-bold text-white">Dashboard</h1>
                     <p className="text-slate-400 text-sm mt-1">Fleet Performance Overview</p>
                 </div>
 
-                <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-xl px-4 py-2">
-                    <Filter size={16} className="text-slate-500" />
-                    <select
-                        value={selectedMonth}
-                        onChange={(e) => setSelectedMonth(e.target.value)}
-                        className="bg-transparent text-white outline-none cursor-pointer"
+                {/* Monthly Pill Filter */}
+                <div className="flex flex-wrap items-center gap-3 overflow-x-auto pb-2 scrollbar-hide no-scrollbar">
+                    <button
+                        onClick={() => setSelectedMonth('all')}
+                        className={`px-4 py-2 rounded-full border text-sm font-medium transition-all whitespace-nowrap ${selectedMonth === 'all'
+                            ? 'bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-500/20'
+                            : 'bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700'
+                            }`}
                     >
-                        <option value="all">All Time</option>
-                        {availableMonths.map(month => (
-                            <option key={month} value={month}>{month}</option>
-                        ))}
-                    </select>
+                        All Time
+                    </button>
+
+                    {/* Recent Months (Top 4) */}
+                    {availableMonths.slice(0, 4).map(month => (
+                        <button
+                            key={month}
+                            onClick={() => setSelectedMonth(month)}
+                            className={`px-4 py-2 rounded-full border text-sm font-medium transition-all whitespace-nowrap ${selectedMonth === month
+                                ? 'bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-500/20'
+                                : 'bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700'
+                                }`}
+                        >
+                            {formatMonth(month)}
+                        </button>
+                    ))}
+
+                    {/* Active "Other" Month Pill (if selected via dropdown and not in top 4) */}
+                    {selectedMonth !== 'all' && !availableMonths.slice(0, 4).includes(selectedMonth) && (
+                        <button
+                            className="px-4 py-2 rounded-full border text-sm font-medium transition-all whitespace-nowrap bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-500/20"
+                        >
+                            {formatMonth(selectedMonth)}
+                        </button>
+                    )}
+
+                    {/* History Dropdown */}
+                    {availableMonths.length > 0 && (
+                        <div className="relative flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-full px-4 py-2 hover:border-slate-700 transition-all">
+                            <Calendar size={14} className="text-slate-500" />
+                            <select
+                                value={availableMonths.includes(selectedMonth) ? selectedMonth : 'history'}
+                                onChange={(e) => {
+                                    if (e.target.value !== 'history') {
+                                        setSelectedMonth(e.target.value);
+                                    }
+                                }}
+                                className="bg-transparent text-sm font-medium text-slate-400 outline-none cursor-pointer appearance-none pr-4"
+                            >
+                                <option value="history" disabled>History</option>
+                                {availableMonths.map(month => (
+                                    <option key={month} value={month} className="bg-slate-900 text-white">
+                                        {formatMonth(month)}
+                                    </option>
+                                ))}
+                            </select>
+                            <div className="absolute right-3 pointer-events-none">
+                                <Filter size={10} className="text-slate-500" />
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 

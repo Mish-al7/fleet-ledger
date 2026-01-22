@@ -60,7 +60,15 @@ export async function GET(req) {
 
         const summary = await Trip.aggregate(pipeline);
 
-        return NextResponse.json({ success: true, data: summary });
+        // Also fetch all distinct months available for filtering
+        const allMonths = await Trip.distinct('month');
+        const availableMonths = allMonths.sort().reverse();
+
+        return NextResponse.json({
+            success: true,
+            data: summary,
+            availableMonths
+        });
     } catch (error) {
         return NextResponse.json({ error: error.message }, { status: 400 });
     }

@@ -45,32 +45,6 @@ function SignInContent() {
         }
     };
 
-    const quickLogin = async (userEmail, userPassword) => {
-        setEmail(userEmail);
-        setPassword(userPassword);
-        setLoading(true);
-        setError('');
-
-        const result = await signIn('credentials', {
-            redirect: false,
-            email: userEmail,
-            password: userPassword,
-        });
-
-        if (result?.error) {
-            setError(result.error);
-            setLoading(false);
-        } else {
-            // Fetch session to get user role
-            const response = await fetch('/api/auth/session');
-            const session = await response.json();
-
-            // Redirect based on role
-            const redirectUrl = session?.user?.role === 'driver' ? '/trips/new' : '/admin/summary';
-            router.push(redirectUrl);
-            router.refresh();
-        }
-    };
 
     return (
         <div className="min-h-screen flex items-center justify-center p-6 bg-slate-950">
@@ -103,7 +77,7 @@ function SignInContent() {
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
                                 className="w-full px-4 py-3 bg-slate-950 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                placeholder="admin@fleet.com"
+                                placeholder=""
                             />
                         </div>
 
@@ -115,7 +89,7 @@ function SignInContent() {
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
                                 className="w-full px-4 py-3 bg-slate-950 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                placeholder="••••••••"
+                                placeholder=""
                             />
                         </div>
                     </div>
@@ -136,26 +110,6 @@ function SignInContent() {
                     </button>
                 </form>
 
-                {/* Quick Login Buttons */}
-                <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6 space-y-3">
-                    <p className="text-slate-400 text-sm text-center mb-4">Quick Login (Test Accounts)</p>
-
-                    <button
-                        onClick={() => quickLogin('admin@fleetledger.com', 'admin123')}
-                        disabled={loading}
-                        className="w-full py-2 bg-emerald-600/10 border border-emerald-600/20 text-emerald-400 rounded-lg hover:bg-emerald-600/20 transition-all disabled:opacity-50"
-                    >
-                        Login as Admin
-                    </button>
-
-                    <button
-                        onClick={() => quickLogin('driver@fleetledger.com', 'driver123')}
-                        disabled={loading}
-                        className="w-full py-2 bg-blue-600/10 border border-blue-600/20 text-blue-400 rounded-lg hover:bg-blue-600/20 transition-all disabled:opacity-50"
-                    >
-                        Login as Driver
-                    </button>
-                </div>
 
             </div>
         </div>
