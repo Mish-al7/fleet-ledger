@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import dbConnect from '@/lib/dbConnect';
 import Trip from '@/models/Trip';
 import OpeningBalance from '@/models/OpeningBalance';
+import Vehicle from '@/models/Vehicle';
 
 export async function GET(req, { params }) {
     try {
@@ -16,9 +17,11 @@ export async function GET(req, { params }) {
         const { vehicleId } = await params;
         await dbConnect();
 
-        // 1. Get Opening Balance
+        // 1. Get Opening Balance & Vehicle Details
         const obDoc = await OpeningBalance.findOne({ vehicle_id: vehicleId });
         const startBalance = obDoc ? obDoc.opening_balance : 0;
+
+        const vehicle = await Vehicle.findById(vehicleId).lean();
 
         // 2. Get Trips
         const trips = await Trip.find({ vehicle_id: vehicleId })
@@ -42,6 +45,7 @@ export async function GET(req, { params }) {
             success: true,
             data: {
                 opening_balance: startBalance,
+                vehicle: vehicle,
                 ledger: ledger
             }
         });

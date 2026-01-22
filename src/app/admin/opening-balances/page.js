@@ -113,6 +113,7 @@ export default function OpeningBalancesPage() {
                                         placeholder="0"
                                         value={updates[item.vehicle_id] ?? item.opening_balance}
                                         onChange={(e) => handleUpdate(item.vehicle_id, e.target.value)}
+                                        onWheel={(e) => e.target.blur()}
                                     />
                                 </div>
 
