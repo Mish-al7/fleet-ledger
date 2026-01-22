@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/app/components/Navbar';
-import { Calendar, truck, MapPin, DollarSign, Save } from 'lucide-react';
+import { Calendar, Truck, MapPin, DollarSign, Save } from 'lucide-react';
 
 // UI Components
 const InputGroup = ({ label, name, value, onChange, type = "text", icon: Icon, placeholder, required = false }) => (
@@ -39,6 +39,7 @@ export default function NewTripPage() {
         trip_date: new Date().toISOString().split('T')[0],
         vehicle_id: '',
         trip_route: '',
+        actual_driver_name: '',
         income: '',
         fuel: '',
         fasttag: '',
@@ -202,6 +203,14 @@ export default function NewTripPage() {
                             icon={MapPin}
                             placeholder="e.g. Bangalore to Chennai"
                             required
+                        />
+
+                        <InputGroup
+                            label="Actual Driver Name (optional)"
+                            name="actual_driver_name"
+                            value={formData.actual_driver_name}
+                            onChange={handleChange}
+                            placeholder="Name of person who drove"
                         />
                     </div>
 

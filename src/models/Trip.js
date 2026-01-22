@@ -52,6 +52,12 @@ const TripSchema = new mongoose.Schema({
         type: String,
         trim: true,
     },
+
+    // Optional: name of person who physically drove (display only, not for auth)
+    actual_driver_name: {
+        type: String,
+        trim: true,
+    },
 }, {
     timestamps: true,
 });

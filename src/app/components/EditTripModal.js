@@ -33,6 +33,7 @@ export default function EditTripModal({ trip, onClose, onUpdate }) {
         trip_date: '',
         vehicle_id: '',
         trip_route: '',
+        actual_driver_name: '',
         income: '',
         fuel: '',
         fasttag: '',
@@ -49,6 +50,7 @@ export default function EditTripModal({ trip, onClose, onUpdate }) {
                 trip_date: trip.trip_date ? new Date(trip.trip_date).toISOString().split('T')[0] : '',
                 vehicle_id: trip.vehicle_id?._id || trip.vehicle_id || '',
                 trip_route: trip.trip_route || '',
+                actual_driver_name: trip.actual_driver_name || '',
                 income: trip.income || '',
                 fuel: trip.fuel || '',
                 fasttag: trip.fasttag || '',
@@ -177,6 +179,14 @@ export default function EditTripModal({ trip, onClose, onUpdate }) {
                             icon={MapPin}
                             placeholder="e.g. Bangalore to Chennai"
                             required
+                        />
+
+                        <InputGroup
+                            label="Actual Driver Name (optional)"
+                            name="actual_driver_name"
+                            value={formData.actual_driver_name}
+                            onChange={handleChange}
+                            placeholder="Name of person who drove"
                         />
 
                         <div className="h-px bg-slate-800" />

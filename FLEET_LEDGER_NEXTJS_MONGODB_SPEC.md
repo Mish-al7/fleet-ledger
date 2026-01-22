@@ -283,6 +283,22 @@ Click vehicle → open ledger
 - No permission bypass
 - No feature outside this spec
 
+## 11 Actual Driver Name (Add-on Field)
+
+Trips may include an optional field `actual_driver_name`.
+
+Purpose:
+- Represents the person who physically drove the vehicle
+- Independent of system login or permissions
+
+Rules:
+- Free text
+- Not a foreign key
+- Not used for authorization
+- Displayed in ledgers and summaries as the driver name
+- If empty, fallback to logged-in driver name
+
+
 ---
 
 END OF DOCUMENT
