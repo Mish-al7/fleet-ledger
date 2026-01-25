@@ -65,6 +65,7 @@ export default function AdminLayout({ children }) {
                     <NavItem href="/admin/vehicles" icon={Truck} label="Vehicles" />
                     <NavItem href="/admin/drivers" icon={Users} label="Drivers" />
                     <NavItem href="/admin/opening-balances" icon={Settings} label="Opening Balances" />
+                    <NavItem href="/admin/trip-sheets" icon={FileText} label="Trip Sheets" />
 
                     <div className="md:mt-auto pt-4 md:border-t border-slate-800">
                         <button

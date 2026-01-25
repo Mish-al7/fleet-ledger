@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Truck, Plus, Check, X } from 'lucide-react';
+import Link from 'next/link';
 
 export default function VehiclesPage() {
     const [vehicles, setVehicles] = useState([]);
@@ -140,22 +141,23 @@ export default function VehiclesPage() {
             {/* Vehicles List */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {vehicles.map(vehicle => (
-                    <div
+                    <Link
                         key={vehicle._id}
-                        className="bg-slate-900 border border-slate-800 rounded-xl p-6 hover:border-slate-700 transition-all"
+                        href={`/admin/vehicles/${vehicle._id}`}
+                        className="bg-slate-900 border border-slate-800 rounded-xl p-6 hover:border-blue-500/50 hover:bg-slate-800/50 transition-all cursor-pointer group"
                     >
                         <div className="flex items-center gap-4">
                             <div className={`p-3 rounded-lg ${vehicle.status === 'active' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-slate-800 text-slate-500'}`}>
                                 <Truck size={24} />
                             </div>
                             <div className="flex-1">
-                                <h3 className="font-bold text-lg text-white">{vehicle.vehicle_no}</h3>
+                                <h3 className="font-bold text-lg text-white group-hover:text-blue-400 transition-colors">{vehicle.vehicle_no}</h3>
                                 <span className={`text-xs px-2 py-1 rounded-full ${vehicle.status === 'active' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-slate-800 text-slate-400'}`}>
                                     {vehicle.status}
                                 </span>
                             </div>
                         </div>
-                    </div>
+                    </Link>
                 ))}
 
                 {vehicles.length === 0 && (
