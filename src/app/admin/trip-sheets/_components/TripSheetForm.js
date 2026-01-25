@@ -15,6 +15,7 @@ const InputGroup = ({ label, name, type = 'text', placeholder, className = '', v
             value={value}
             onChange={onChange}
             placeholder={placeholder}
+            onWheel={(e) => e.target.blur()}
             className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white placeholder-slate-600 focus:outline-none focus:border-blue-500 transition-colors"
         />
     </div>

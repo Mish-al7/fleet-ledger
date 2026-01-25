@@ -218,6 +218,7 @@ export default function ServiceLogsTab({ vehicleId }) {
                                     <input type="number" required className="w-full bg-slate-950 border border-slate-700 rounded px-3 py-2 text-white"
                                         value={formData.odometer_reading}
                                         onChange={e => setFormData({ ...formData, odometer_reading: e.target.value })}
+                                        onWheel={e => e.target.blur()}
                                     />
                                 </div>
                             </div>
@@ -264,6 +265,7 @@ export default function ServiceLogsTab({ vehicleId }) {
                                         <input type="number" className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white"
                                             value={formData.parts_cost}
                                             onChange={e => setFormData({ ...formData, parts_cost: e.target.value })}
+                                            onWheel={e => e.target.blur()}
                                         />
                                     </div>
                                     <div>
@@ -271,6 +273,7 @@ export default function ServiceLogsTab({ vehicleId }) {
                                         <input type="number" className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white"
                                             value={formData.labour_cost}
                                             onChange={e => setFormData({ ...formData, labour_cost: e.target.value })}
+                                            onWheel={e => e.target.blur()}
                                         />
                                     </div>
                                     <div>
