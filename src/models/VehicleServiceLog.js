@@ -62,6 +62,10 @@ const VehicleServiceLogSchema = new mongoose.Schema({
         type: Boolean,
         default: false,
     },
+    follow_up_completed: {
+        type: Boolean,
+        default: false,
+    },
     follow_up_notes: String,
     next_service_date: Date,
 
@@ -77,4 +81,9 @@ const VehicleServiceLogSchema = new mongoose.Schema({
 // Auto-calculation moved to API controller to avoid middleware issues
 
 
-export default mongoose.models.VehicleServiceLog || mongoose.model('VehicleServiceLog', VehicleServiceLogSchema);
+// Help with hot-reloading schema changes in development
+if (mongoose.models.VehicleServiceLog) {
+    delete mongoose.models.VehicleServiceLog;
+}
+
+export default mongoose.model('VehicleServiceLog', VehicleServiceLogSchema);

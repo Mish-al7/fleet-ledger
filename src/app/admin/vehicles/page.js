@@ -151,10 +151,17 @@ export default function VehiclesPage() {
                                 <Truck size={24} />
                             </div>
                             <div className="flex-1">
-                                <h3 className="font-bold text-lg text-white group-hover:text-blue-400 transition-colors">{vehicle.vehicle_no}</h3>
-                                <span className={`text-xs px-2 py-1 rounded-full ${vehicle.status === 'active' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-slate-800 text-slate-400'}`}>
-                                    {vehicle.status}
-                                </span>
+                                <h3 className="font-bold text-lg text-white group-hover:text-blue-400 transition-colors uppercase">{vehicle.vehicle_no}</h3>
+                                <div className="flex items-center gap-2 mt-1">
+                                    <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-md ${vehicle.status === 'active' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-slate-800 text-slate-400'}`}>
+                                        {vehicle.status}
+                                    </span>
+                                    {vehicle.next_service_date && (
+                                        <span className="bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 text-[10px] font-bold px-2 py-0.5 rounded-md">
+                                            Service Follow-up: {new Date(vehicle.next_service_date).toLocaleDateString('en-GB')}
+                                        </span>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </Link>

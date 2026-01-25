@@ -21,27 +21,32 @@ export default function ServiceLogsTab({ vehicleId }) {
             labour_cost: '',
             service_provider: '',
             follow_up_required: false,
+            follow_up_completed: false,
             follow_up_notes: '',
             next_service_date: ''
         };
     }
 
     useEffect(() => {
-        fetchLogs();
+        fetchLogs(true);
     }, [vehicleId]);
 
-    const fetchLogs = async () => {
-        setLoading(true);
+    const fetchLogs = async (isInitial = false) => {
+        if (isInitial) setLoading(true);
         try {
-            const res = await fetch(`/api/vehicles/${vehicleId}/service-logs`);
+            console.log('Fetching logs for vehicle:', vehicleId);
+            // Add timestamp to prevent caching
+            const res = await fetch(`/api/vehicles/${vehicleId}/service-logs?t=${Date.now()}`);
             if (res.ok) {
                 const data = await res.json();
                 setLogs(data);
+            } else {
+                console.error('Failed to fetch logs:', res.status);
             }
         } catch (error) {
-            console.error('Failed to fetch logs', error);
+            console.error('Error in fetchLogs:', error);
         } finally {
-            setLoading(false);
+            if (isInitial) setLoading(false);
         }
     };
 
@@ -62,6 +67,7 @@ export default function ServiceLogsTab({ vehicleId }) {
             labour_cost: log.labour_cost || 0,
             service_provider: log.service_provider || '',
             follow_up_required: log.follow_up_required || false,
+            follow_up_completed: log.follow_up_completed || false,
             follow_up_notes: log.follow_up_notes || '',
             next_service_date: log.next_service_date ? log.next_service_date.split('T')[0] : ''
         });
@@ -72,9 +78,32 @@ export default function ServiceLogsTab({ vehicleId }) {
         if (!confirm('Are you sure you want to delete this service log?')) return;
         try {
             const res = await fetch(`/api/vehicles/${vehicleId}/service-logs/${logId}`, { method: 'DELETE' });
-            if (res.ok) fetchLogs();
+            if (res.ok) fetchLogs(false);
         } catch (error) {
             console.error(error);
+        }
+    };
+
+    const handleToggleDone = async (log) => {
+        console.log('Toggle done initiated for log:', log._id);
+        try {
+            const res = await fetch(`/api/vehicles/${vehicleId}/service-logs/${log._id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ follow_up_completed: !log.follow_up_completed })
+            });
+
+            if (res.ok) {
+                console.log('Successfully toggled done. Refreshing list silently...');
+                await fetchLogs(false);
+                alert('Service status updated successfully!');
+            } else {
+                const json = await res.json();
+                console.error('API Error:', json);
+                alert(json.error || 'Failed to update status');
+            }
+        } catch (error) {
+            console.error('Network or JS Error:', error);
         }
     };
 
@@ -106,7 +135,7 @@ export default function ServiceLogsTab({ vehicleId }) {
 
             if (res.ok) {
                 setShowModal(false);
-                fetchLogs();
+                fetchLogs(false);
             } else {
                 alert(json.error || 'Failed to save');
             }
@@ -163,9 +192,27 @@ export default function ServiceLogsTab({ vehicleId }) {
                                         <td className="px-6 py-4 text-white">
                                             {new Date(log.service_date).toLocaleDateString()}
                                             {log.follow_up_required && (
-                                                <span className="ml-2 px-2 py-0.5 rounded-full bg-yellow-500/10 text-yellow-500 text-[10px] border border-yellow-500/20">
-                                                    Follow-up: {log.next_service_date ? new Date(log.next_service_date).toLocaleDateString() : 'N/A'}
-                                                </span>
+                                                <div className="mt-1 flex items-center gap-2">
+                                                    <span className={`px-2 py-0.5 rounded-full text-[10px] border ${log.follow_up_completed
+                                                        ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                                                        : 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'}`}>
+                                                        {log.follow_up_completed ? 'Service Done' : `Follow-up: ${log.next_service_date ? new Date(log.next_service_date).toLocaleDateString() : 'N/A'}`}
+                                                    </span>
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => {
+                                                            e.preventDefault();
+                                                            e.stopPropagation();
+                                                            if (!log.follow_up_completed) handleToggleDone(log);
+                                                        }}
+                                                        disabled={log.follow_up_completed}
+                                                        className={`text-[10px] border px-2 py-0.5 rounded-md transition-colors ${log.follow_up_completed
+                                                            ? 'bg-slate-800 text-slate-500 border-slate-700 cursor-default'
+                                                            : 'bg-blue-600/20 text-blue-400 border-blue-500/20 hover:bg-blue-600/40 cursor-pointer'}`}
+                                                    >
+                                                        {log.follow_up_completed ? 'Done' : 'Mark Done'}
+                                                    </button>
+                                                </div>
                                             )}
                                         </td>
                                         <td className="px-6 py-4">

@@ -12,7 +12,37 @@ export async function GET(req) {
         }
 
         await dbConnect();
-        const vehicles = await Vehicle.find({}).sort({ vehicle_no: 1 });
+
+        // Match only vehicles, and lookup latest next_service_date from logs
+        const vehicles = await Vehicle.aggregate([
+            { $sort: { vehicle_no: 1 } },
+            {
+                $lookup: {
+                    from: 'vehicleservicelogs',
+                    let: { vId: '$_id' },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: { $eq: ['$vehicle_id', '$$vId'] },
+                                next_service_date: { $exists: true, $ne: null },
+                                follow_up_completed: { $ne: true }
+                            }
+                        },
+                        { $sort: { next_service_date: 1 } },
+                        { $limit: 1 },
+                        { $project: { next_service_date: 1 } }
+                    ],
+                    as: 'latest_log'
+                }
+            },
+            {
+                $addFields: {
+                    next_service_date: { $arrayElemAt: ['$latest_log.next_service_date', 0] }
+                }
+            },
+            { $project: { latest_log: 0 } }
+        ]);
+
         return NextResponse.json({ success: true, data: vehicles });
     } catch (error) {
         return NextResponse.json({ error: error.message }, { status: 400 });
