@@ -10,7 +10,7 @@ export async function GET(req, { params }) {
         const session = await getServerSession(authOptions);
         if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-        const { id } = params;
+        const { id } = await params;
         await dbConnect();
 
         const trip = await Trip.findById(id).populate('vehicle_id driver_id');
@@ -33,7 +33,7 @@ export async function PUT(req, { params }) {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
-        const { id } = params;
+        const { id } = await params;
         const body = await req.json();
 
         await dbConnect();
@@ -68,7 +68,7 @@ export async function DELETE(req, { params }) {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
-        const { id } = params;
+        const { id } = await params;
         await dbConnect();
 
         const deletedTrip = await Trip.findByIdAndDelete(id);

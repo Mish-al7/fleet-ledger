@@ -13,9 +13,15 @@ export default function VehicleLedgerPage() {
     const [expandedRows, setExpandedRows] = useState({});
     const [editingTrip, setEditingTrip] = useState(null);
 
+    // Filters state
+    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+    const [selectedMonth, setSelectedMonth] = useState(''); // '' means all
+    const [dateRange, setDateRange] = useState({ start: '', end: '' });
+
     const fetchLedger = useCallback(async () => {
         try {
-            const res = await fetch(`/api/ledger/${vehicleId}`);
+            setLoading(true);
+            const res = await fetch(`/api/ledger/${vehicleId}?year=${selectedYear}`);
             const json = await res.json();
             if (json.success) setData(json.data);
         } catch (err) {
@@ -23,7 +29,7 @@ export default function VehicleLedgerPage() {
         } finally {
             setLoading(false);
         }
-    }, [vehicleId]);
+    }, [vehicleId, selectedYear]);
 
     useEffect(() => {
         fetchLedger();
@@ -63,20 +69,97 @@ export default function VehicleLedgerPage() {
         fetchLedger();
     };
 
-    if (loading) return <div className="p-6 text-slate-500">Loading ledger...</div>;
+    // Filter and Sort Logic
+    const filteredLedger = data?.ledger.filter(row => {
+        const tripDate = new Date(row.trip_date);
+
+        // Year filter (API already filters trip data if we wanted to, but requirement says "Filters affect ONLY which rows are shown")
+        // However, year changes the Opening Balance Resolution, so we re-fetch on Year change.
+        // For Month and Date Range, we filter locally to avoid re-calculating balances.
+
+        if (selectedMonth && row.month !== `${selectedYear}-${selectedMonth.padStart(2, '0')}`) {
+            return false;
+        }
+
+        if (dateRange.start && tripDate < new Date(dateRange.start)) return false;
+        if (dateRange.end && tripDate > new Date(dateRange.end)) return false;
+
+        return true;
+    }).sort((a, b) => new Date(b.trip_date) - new Date(a.trip_date)) || [];
+
+    if (loading && !data) return <div className="p-6 text-slate-500">Loading ledger...</div>;
     if (!data) return <div className="p-6 text-red-400">Failed to load data</div>;
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center gap-4">
-                <Link href="/admin/ledger" className="p-2 bg-slate-900 rounded-lg text-slate-400 hover:text-white transition-colors">
-                    <ArrowLeft size={20} />
-                </Link>
-                <div>
-                    <h1 className="text-2xl font-bold text-white">
-                        {data.vehicle ? data.vehicle.vehicle_no : 'Vehicle Ledger'}
-                    </h1>
-                    <p className="text-slate-400 text-sm">Opening Balance: <span className="text-white font-mono">₹{data.opening_balance.toLocaleString()}</span></p>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                    <Link href="/admin/ledger" className="p-2 bg-slate-900 rounded-lg text-slate-400 hover:text-white transition-colors">
+                        <ArrowLeft size={20} />
+                    </Link>
+                    <div>
+                        <h1 className="text-2xl font-bold text-white">
+                            {data.vehicle ? data.vehicle.vehicle_no : 'Vehicle Ledger'}
+                        </h1>
+                        <div className="flex items-center gap-3 mt-1">
+                            <p className="text-slate-400 text-sm">
+                                Opening Balance ({data.opening_balance_year}):
+                                <span className="text-white font-mono ml-1">₹{data.opening_balance.toLocaleString()}</span>
+                            </p>
+                            <span className="text-slate-700">|</span>
+                            <p className="text-slate-500 text-xs italic">* Informational only, not in running balance</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Filter Bar */}
+                <div className="flex flex-wrap items-center gap-3 bg-slate-900/50 p-2 rounded-xl border border-slate-800">
+                    <select
+                        value={selectedYear}
+                        onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                        className="bg-slate-950 text-white text-sm border border-slate-700 rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500"
+                    >
+                        {[2024, 2025, 2026, 2027].map(y => (
+                            <option key={y} value={y}>{y}</option>
+                        ))}
+                    </select>
+
+                    <select
+                        value={selectedMonth}
+                        onChange={(e) => setSelectedMonth(e.target.value)}
+                        className="bg-slate-950 text-white text-sm border border-slate-700 rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500"
+                    >
+                        <option value="">All Months</option>
+                        {Array.from({ length: 12 }, (_, i) => {
+                            const m = (i + 1).toString().padStart(2, '0');
+                            const name = new Date(2000, i).toLocaleString('default', { month: 'long' });
+                            return <option key={m} value={m}>{name}</option>;
+                        })}
+                    </select>
+
+                    <div className="flex items-center gap-2 text-xs text-slate-500">
+                        <input
+                            type="date"
+                            value={dateRange.start}
+                            onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
+                            className="bg-slate-950 text-white border border-slate-700 rounded-lg px-2 py-1 focus:outline-none"
+                        />
+                        <span>to</span>
+                        <input
+                            type="date"
+                            value={dateRange.end}
+                            onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
+                            className="bg-slate-950 text-white border border-slate-700 rounded-lg px-2 py-1 focus:outline-none"
+                        />
+                        {(dateRange.start || dateRange.end || selectedMonth) && (
+                            <button
+                                onClick={() => { setSelectedMonth(''); setDateRange({ start: '', end: '' }); }}
+                                className="text-blue-400 hover:text-blue-300 ml-1"
+                            >
+                                Clear
+                            </button>
+                        )}
+                    </div>
                 </div>
             </div>
 
@@ -95,7 +178,7 @@ export default function VehicleLedgerPage() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-800/50">
-                            {data.ledger.map((row) => (
+                            {filteredLedger.map((row) => (
                                 <React.Fragment key={row._id}>
                                     <tr
                                         onClick={() => toggleRow(row._id)}
@@ -146,11 +229,11 @@ export default function VehicleLedgerPage() {
                                             <td colSpan="7" className="px-6 py-4 border-l-2 border-blue-500">
                                                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 animate-in fade-in slide-in-from-top-1 duration-200">
                                                     <div>
-                                                        <span className="text-[10px] uppercase text-slate-500 font-bold block mb-1">Income Breakdown</span>
+                                                        <span className="text-[10px] uppercase text-slate-500 font-bold block mb-1">Income Details</span>
                                                         <p className="text-white font-medium">Income: ₹{row.income?.toLocaleString() || 0}</p>
                                                     </div>
                                                     <div className="col-span-1 lg:col-span-3">
-                                                        <span className="text-[10px] uppercase text-slate-500 font-bold block mb-1">Expense Breakdown</span>
+                                                        <span className="text-[10px] uppercase text-slate-500 font-bold block mb-1">Expense Details</span>
                                                         <div className="flex flex-wrap gap-x-6 gap-y-2">
                                                             {row.fuel > 0 && <span className="text-xs text-slate-400">Fuel: <span className="text-white">₹{row.fuel.toLocaleString()}</span></span>}
                                                             {row.fasttag > 0 && <span className="text-xs text-slate-400">FastTag: <span className="text-white">₹{row.fasttag.toLocaleString()}</span></span>}
@@ -172,9 +255,9 @@ export default function VehicleLedgerPage() {
                                     )}
                                 </React.Fragment>
                             ))}
-                            {data.ledger.length === 0 && (
+                            {filteredLedger.length === 0 && (
                                 <tr>
-                                    <td colSpan="7" className="px-6 py-8 text-center text-slate-600">No trips found for this vehicle.</td>
+                                    <td colSpan="7" className="px-6 py-8 text-center text-slate-600">No trips found for the selected filters.</td>
                                 </tr>
                             )}
                         </tbody>

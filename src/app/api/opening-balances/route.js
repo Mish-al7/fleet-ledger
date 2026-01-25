@@ -11,8 +11,12 @@ export async function GET(req) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
+        const { searchParams } = new URL(req.url);
+        const year = searchParams.get('year');
+        const filter = year ? { year: parseInt(year) } : {};
+
         await dbConnect();
-        const balances = await OpeningBalance.find({}).populate('vehicle_id', 'vehicle_no');
+        const balances = await OpeningBalance.find(filter).populate('vehicle_id', 'vehicle_no');
         return NextResponse.json({ success: true, data: balances });
     } catch (error) {
         return NextResponse.json({ error: error.message }, { status: 400 });
@@ -29,9 +33,13 @@ export async function POST(req) {
         await dbConnect();
         const body = await req.json();
 
-        // Upsert logic: if exists for vehicle, update it.
+        if (!body.year) {
+            return NextResponse.json({ error: 'Year is required' }, { status: 400 });
+        }
+
+        // Upsert logic: if exists for vehicle + year, update it.
         const balance = await OpeningBalance.findOneAndUpdate(
-            { vehicle_id: body.vehicle_id },
+            { vehicle_id: body.vehicle_id, year: body.year },
             { opening_balance: body.opening_balance },
             { new: true, upsert: true, runValidators: true }
         );

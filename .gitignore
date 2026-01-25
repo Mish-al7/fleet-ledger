@@ -76,3 +76,15 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# MongoDB dumps
+dump/
+*.bson
+*.metadata.json
+
+# MongoDB tools / installers
+mongodb-database-tools*
+mongo*
+mongod*
+
+

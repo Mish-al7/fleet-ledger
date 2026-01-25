@@ -5,7 +5,10 @@ const OpeningBalanceSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Vehicle',
         required: true,
-        unique: true, // One opening balance per vehicle
+    },
+    year: {
+        type: Number,
+        required: true,
     },
     opening_balance: {
         type: Number,
@@ -16,4 +19,12 @@ const OpeningBalanceSchema = new mongoose.Schema({
     timestamps: true,
 });
 
-export default mongoose.models.OpeningBalance || mongoose.model('OpeningBalance', OpeningBalanceSchema);
+// One opening balance per vehicle per year
+OpeningBalanceSchema.index({ vehicle_id: 1, year: 1 }, { unique: true });
+
+// Help with hot-reloading schema changes in development
+if (mongoose.models.OpeningBalance) {
+    delete mongoose.models.OpeningBalance;
+}
+
+export default mongoose.model('OpeningBalance', OpeningBalanceSchema);
