@@ -21,27 +21,12 @@ export async function GET(req, { params }) {
         await dbConnect();
 
         // 1. Resolve Opening Balance (Read-Only Logic)
-        // Step 1: Check for exact year
-        let obDoc = await OpeningBalance.findOne({ vehicle_id: vehicleId, year: selectedYear });
-
-        // Step 2: Fallback to most recent previous year if not found
-        if (!obDoc) {
-            obDoc = await OpeningBalance.findOne({
-                vehicle_id: vehicleId,
-                year: { $lt: selectedYear }
-            }).sort({ year: -1 });
-        }
-
-        // Step 3: Final fallback to legacy (no year field) if still not found
-        if (!obDoc) {
-            obDoc = await OpeningBalance.findOne({
-                vehicle_id: vehicleId,
-                year: { $exists: false }
-            });
-        }
+        // 1. Resolve Opening Balance (Read-Only Logic)
+        // Step 1: Check for exact year ONLY (Strict Mode)
+        const obDoc = await OpeningBalance.findOne({ vehicle_id: vehicleId, year: selectedYear });
 
         const startBalance = obDoc ? obDoc.opening_balance : 0;
-        const obYear = (obDoc && obDoc.year) ? obDoc.year : (obDoc ? 'Legacy' : selectedYear);
+        const obYear = selectedYear;
 
         const vehicle = await Vehicle.findById(vehicleId).lean();
 

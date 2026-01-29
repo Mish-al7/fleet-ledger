@@ -90,6 +90,18 @@ export default function VehicleLedgerPage() {
     if (loading && !data) return <div className="p-6 text-slate-500">Loading ledger...</div>;
     if (!data) return <div className="p-6 text-red-400">Failed to load data</div>;
 
+    // Calculate Yearly Stats for Header Display
+    const yearlyTrips = data.ledger.filter(row => {
+        const tripYear = new Date(row.trip_date).getFullYear();
+        return tripYear === selectedYear;
+    });
+
+    const yearlyRunningBalance = yearlyTrips.reduce((acc, row) => {
+        return acc + (row.income || 0) - (row.total_expenses || 0);
+    }, 0);
+
+    const totalBalance = (data.opening_balance || 0) + yearlyRunningBalance;
+
     return (
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -101,13 +113,30 @@ export default function VehicleLedgerPage() {
                         <h1 className="text-2xl font-bold text-white">
                             {data.vehicle ? data.vehicle.vehicle_no : 'Vehicle Ledger'}
                         </h1>
-                        <div className="flex items-center gap-3 mt-1">
-                            <p className="text-slate-400 text-sm">
-                                Opening Balance ({data.opening_balance_year}):
-                                <span className="text-white font-mono ml-1">₹{data.opening_balance.toLocaleString()}</span>
+                        <div className="flex flex-col gap-1 mt-1">
+                            <div className="flex items-center gap-3">
+                                <p className="text-slate-400 text-sm">
+                                    Opening Balance ({data.selected_year}):
+                                    <span className="text-white font-mono ml-1">₹{data.opening_balance.toLocaleString()}</span>
+                                </p>
+                                <span className="text-slate-700">|</span>
+                                <p className="text-slate-400 text-sm">
+                                    Running Balance ({selectedYear}):
+                                    <span className={`font-mono ml-1 ${yearlyRunningBalance >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                        {yearlyRunningBalance >= 0 ? '+' : ''}₹{yearlyRunningBalance.toLocaleString()}
+                                    </span>
+                                </p>
+                                <span className="text-slate-700">|</span>
+                                <p className="text-slate-200 text-sm font-bold">
+                                    Total Balance:
+                                    <span className={`font-mono ml-1 ${totalBalance >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                        ₹{totalBalance.toLocaleString()}
+                                    </span>
+                                </p>
+                            </div>
+                            <p className="text-slate-500 text-[10px] italic">
+                                Opening Balance (₹{data.opening_balance.toLocaleString()}) + Running Balance (₹{yearlyRunningBalance.toLocaleString()}) = Total Balance (₹{totalBalance.toLocaleString()})
                             </p>
-                            <span className="text-slate-700">|</span>
-                            <p className="text-slate-500 text-xs italic">* Informational only, not in running balance</p>
                         </div>
                     </div>
                 </div>
