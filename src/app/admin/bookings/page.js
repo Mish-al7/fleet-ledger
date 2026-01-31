@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Calendar, MapPin, Clock, Car, FileText, Eye, Check, X, Filter, ChevronDown } from 'lucide-react';
+import { Calendar, MapPin, Clock, Car, FileText, Eye, Check, X, Filter, ChevronDown, Trash2, Edit } from 'lucide-react';
+import BookingEditModal from './BookingEditModal';
 
 // Status Badge Component
 const StatusBadge = ({ status }) => {
@@ -18,7 +19,7 @@ const StatusBadge = ({ status }) => {
     };
 
     return (
-        <span className={`px-3 py-1 rounded-lg text-xs font-medium border ${styles[status]}`}>
+        <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-medium border whitespace-nowrap ${styles[status]}`}>
             {labels[status]}
         </span>
     );
@@ -134,6 +135,7 @@ export default function AdminBookingsPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [selectedBooking, setSelectedBooking] = useState(null);
+    const [editingBooking, setEditingBooking] = useState(null);
     const [actionLoading, setActionLoading] = useState(false);
 
     // Filters
@@ -208,6 +210,43 @@ export default function AdminBookingsPage() {
         } finally {
             setActionLoading(false);
         }
+    }
+
+    async function handleDelete(bookingId) {
+        if (!confirm('Are you sure you want to delete this booking? This action cannot be undone.')) return;
+
+        try {
+            const res = await fetch(`/api/bookings/${bookingId}`, {
+                method: 'DELETE',
+            });
+
+            const json = await res.json();
+
+            if (!res.ok) {
+                throw new Error(json.error || 'Failed to delete booking');
+            }
+
+            fetchBookings();
+        } catch (err) {
+            alert(err.message);
+        }
+    }
+
+    async function handleUpdate(bookingId, updatedData) {
+        const res = await fetch(`/api/bookings/${bookingId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updatedData),
+        });
+
+        const json = await res.json();
+
+        if (!res.ok) {
+            throw new Error(json.error || 'Failed to update booking');
+        }
+
+        setEditingBooking(null);
+        fetchBookings();
     }
 
     return (
@@ -332,6 +371,23 @@ export default function AdminBookingsPage() {
                                                 >
                                                     <Eye size={16} />
                                                 </button>
+
+                                                <button
+                                                    onClick={() => setEditingBooking(booking)}
+                                                    className="p-2 text-amber-400 hover:bg-amber-500/10 rounded-lg transition-colors"
+                                                    title="Edit Booking"
+                                                >
+                                                    <Edit size={16} />
+                                                </button>
+
+                                                <button
+                                                    onClick={() => handleDelete(booking._id)}
+                                                    className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                                                    title="Delete Booking"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+
                                                 {booking.status === 'pending' && (
                                                     <>
                                                         <button
@@ -343,7 +399,7 @@ export default function AdminBookingsPage() {
                                                         </button>
                                                         <button
                                                             onClick={() => handleStatusChange(booking._id, 'rejected')}
-                                                            className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                                                            className="p-2 text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
                                                             title="Reject"
                                                         >
                                                             <X size={16} />
@@ -368,6 +424,15 @@ export default function AdminBookingsPage() {
                     onApprove={(id) => handleStatusChange(id, 'approved')}
                     onReject={(id) => handleStatusChange(id, 'rejected')}
                     actionLoading={actionLoading}
+                />
+            )}
+
+            {editingBooking && (
+                <BookingEditModal
+                    booking={editingBooking}
+                    vehicles={vehicles}
+                    onClose={() => setEditingBooking(null)}
+                    onUpdate={handleUpdate}
                 />
             )}
         </div>
