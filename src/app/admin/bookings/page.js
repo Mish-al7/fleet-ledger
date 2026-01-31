@@ -89,8 +89,8 @@ const BookingDetailModal = ({ booking, onClose, onApprove, onReject, actionLoadi
                     <div className="bg-slate-800/50 rounded-xl p-4">
                         <h3 className="text-sm font-medium text-green-400 mb-3">Financials</h3>
                         <div className="grid grid-cols-2 gap-4 text-sm">
-                            <div><span className="text-slate-500">Advance:</span> <span className="text-white">AED {booking.advance_amount || 0}</span></div>
-                            <div><span className="text-slate-500">Total Amount:</span> <span className="text-white font-bold text-lg">AED {booking.total_amount || 0}</span></div>
+                            <div><span className="text-slate-500">Advance:</span> <span className="text-white">Rs {booking.advance_amount || 0}</span></div>
+                            <div><span className="text-slate-500">Total Amount:</span> <span className="text-white font-bold text-lg">Rs {booking.total_amount || 0}</span></div>
                             <div><span className="text-slate-500">Other Expenses:</span> <span className="text-white">{booking.other_expenses || '-'}</span></div>
                             <div><span className="text-slate-500">Driver F&A:</span> <span className="text-white">{booking.driver_food_accommodation || '-'}</span></div>
                         </div>
