@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, FileText, Settings, LogOut, Truck, Users, CalendarCheck } from 'lucide-react';
+import { LayoutDashboard, FileText, Settings, LogOut, Truck, Users, CalendarCheck, Wallet } from 'lucide-react';
 import { signOut, useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
@@ -67,6 +67,7 @@ export default function AdminLayout({ children }) {
                     <NavItem href="/admin/opening-balances" icon={Settings} label="Opening Balances" />
                     <NavItem href="/admin/trip-sheets" icon={FileText} label="Trip Sheets" />
                     <NavItem href="/admin/bookings" icon={CalendarCheck} label="Bookings" />
+                    <NavItem href="/admin/personal-ledger" icon={Wallet} label="Personal Ledger" />
 
                     <div className="md:mt-auto pt-4 md:border-t border-slate-800">
                         <button
