@@ -131,8 +131,8 @@ const BookingDetailModal = ({ booking, onClose }) => {
                     <div className="border-t border-slate-800 pt-4">
                         <h3 className="text-sm font-medium text-green-400 mb-2">Financials</h3>
                         <div className="grid grid-cols-2 gap-2 text-sm">
-                            <div><span className="text-slate-500">Advance:</span> <span className="text-white">AED {booking.advance_amount || 0}</span></div>
-                            <div><span className="text-slate-500">Total:</span> <span className="text-white font-bold">AED {booking.total_amount || 0}</span></div>
+                            <div><span className="text-slate-500">Advance:</span> <span className="text-white">Rs {booking.advance_amount || 0}</span></div>
+                            <div><span className="text-slate-500">Total:</span> <span className="text-white font-bold">Rs {booking.total_amount || 0}</span></div>
                         </div>
                     </div>
                 </div>
