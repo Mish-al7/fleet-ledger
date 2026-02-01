@@ -20,14 +20,14 @@ async function seed() {
         console.log('✅ Cleared existing data');
 
         // Create Admin
-        const adminPassword = await bcrypt.hash('admin123', 10);
+        const adminPassword = await bcrypt.hash('Admin@hub102', 10);
         const admin = await User.create({
             name: 'Admin User',
-            email: 'admin@fleet.com',
+            email: 'admin@hub102.com',
             password: adminPassword,
             role: 'admin'
         });
-        console.log('✅ Created Admin (email: admin@fleet.com, password: admin123)');
+        console.log('✅ Created Admin (email: admin@hub102.com, password: Admin@hub102)');
 
         // Create Vehicles
         const vehicle1 = await Vehicle.create({
@@ -111,7 +111,7 @@ async function seed() {
         console.log('✅ Created 3 sample trips');
         console.log('\n🎉 Seeding complete!');
         console.log('\nLogin Credentials:');
-        console.log('  Admin: admin@fleet.com / admin123');
+        console.log('  Admin: admin@hub102.com / Admin@hub102');
         console.log('  Driver: driver@fleet.com / driver123');
 
         process.exit(0);
