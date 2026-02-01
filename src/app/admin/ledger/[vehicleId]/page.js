@@ -133,6 +133,23 @@ export default function VehicleLedgerPage() {
                                         ₹{totalBalance.toLocaleString()}
                                     </span>
                                 </p>
+                                {selectedMonth && (() => {
+                                    const monthBalance = data.ledger.filter(row => {
+                                        return row.month === `${selectedYear}-${selectedMonth.padStart(2, '0')}`;
+                                    }).reduce((acc, row) => acc + (row.income || 0) - (row.total_expenses || 0), 0);
+
+                                    return (
+                                        <>
+                                            <span className="text-slate-700">|</span>
+                                            <p className="text-blue-200 text-sm font-bold">
+                                                Monthly Balance:
+                                                <span className={`font-mono ml-1 ${monthBalance >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                                    {monthBalance >= 0 ? '+' : ''}₹{monthBalance.toLocaleString()}
+                                                </span>
+                                            </p>
+                                        </>
+                                    );
+                                })()}
                             </div>
                             <p className="text-slate-500 text-[10px] italic">
                                 Opening Balance (₹{data.opening_balance.toLocaleString()}) + Running Balance (₹{yearlyRunningBalance.toLocaleString()}) = Total Balance (₹{totalBalance.toLocaleString()})
