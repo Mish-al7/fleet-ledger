@@ -85,7 +85,14 @@ export default function VehicleLedgerPage() {
         if (dateRange.end && tripDate > new Date(dateRange.end)) return false;
 
         return true;
-    }).sort((a, b) => new Date(b.trip_date) - new Date(a.trip_date)) || [];
+    }).sort((a, b) => {
+        const dateA = new Date(a.trip_date);
+        const dateB = new Date(b.trip_date);
+        if (dateA > dateB) return -1;
+        if (dateA < dateB) return 1;
+        // If dates are equal, sort by creation time descending (Newest first)
+        return new Date(b.createdAt) - new Date(a.createdAt);
+    }) || [];
 
     if (loading && !data) return <div className="p-6 text-slate-500">Loading ledger...</div>;
     if (!data) return <div className="p-6 text-red-400">Failed to load data</div>;

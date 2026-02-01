@@ -32,7 +32,7 @@ export async function GET(req, { params }) {
 
         // 2. Get ALL Trips (Running balance is global and continuous)
         const trips = await Trip.find({ vehicle_id: vehicleId })
-            .sort({ trip_date: 1 }) // Chronological order for calculation
+            .sort({ trip_date: 1, createdAt: 1 }) // Chronological order for calculation
             .populate('driver_id', 'name')
             .lean();
 
