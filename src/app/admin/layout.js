@@ -63,6 +63,7 @@ export default function AdminLayout({ children }) {
                     <NavItem href="/admin/summary" icon={LayoutDashboard} label="Summary" />
                     <NavItem href="/admin/ledger" icon={FileText} label="Ledgers" />
                     <NavItem href="/admin/vehicles" icon={Truck} label="Vehicles" />
+                    <NavItem href="/admin/expenses" icon={Wallet} label="Expenses" />
                     <NavItem href="/admin/drivers" icon={Users} label="Drivers" />
                     <NavItem href="/admin/opening-balances" icon={Settings} label="Opening Balances" />
                     <NavItem href="/admin/trip-sheets" icon={FileText} label="Trip Sheets" />

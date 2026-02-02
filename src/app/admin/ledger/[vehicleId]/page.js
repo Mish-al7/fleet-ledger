@@ -233,8 +233,20 @@ export default function VehicleLedgerPage() {
                                         <td className="px-6 py-4 font-mono text-slate-300">
                                             {new Date(row.trip_date).toLocaleDateString()}
                                         </td>
-                                        <td className="px-6 py-4">{row.trip_route}</td>
-                                        <td className="px-6 py-4 font-medium text-slate-300">{row.actual_driver_name || row.driver_id?.name || 'Unknown'}</td>
+                                        <td className="px-6 py-4">
+                                            {row.is_admin_expense ? (
+                                                <span className="text-slate-300 italic">{row.description.replace('Admin Expense – ', '')}</span>
+                                            ) : (
+                                                row.trip_route
+                                            )}
+                                        </td>
+                                        <td className="px-6 py-4 font-medium text-slate-300">
+                                            {row.is_admin_expense ? (
+                                                <span className="text-xs bg-slate-800 px-2 py-1 rounded text-blue-400 border border-blue-500/20">Admin</span>
+                                            ) : (
+                                                row.actual_driver_name || row.driver_id?.name || 'Unknown'
+                                            )}
+                                        </td>
 
                                         <td className="px-6 py-4 text-emerald-400 font-medium">
                                             {row.income ? `+${row.income.toLocaleString()}` : '-'}
