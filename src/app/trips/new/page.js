@@ -158,7 +158,7 @@ export default function NewTripPage() {
                                 onClick={() => router.push(`/admin/ledger/${formData.vehicle_id}`)}
                                 className="text-xs font-bold underline bg-emerald-500/10 px-2 py-1 rounded"
                             >
-                                View Ledger
+                                New Ledger
                             </button>
                         </div>
                     )}
