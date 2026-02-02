@@ -23,7 +23,7 @@ export async function GET(req) {
         if (frequency) query.frequency = frequency;
 
         const expenses = await AdminExpense.find(query)
-            .sort({ createdAt: -1 })
+            .sort({ start_date: -1, createdAt: -1 })
             .populate('vehicle_id', 'vehicle_no')
             .lean();
 

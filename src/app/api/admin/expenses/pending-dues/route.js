@@ -69,8 +69,8 @@ export async function GET(req) {
             }
         }
 
-        // Sort by date (oldest first)
-        pendingDues.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+        // Sort by date (newest first)
+        pendingDues.sort((a, b) => new Date(b.dueDate) - new Date(a.dueDate));
 
         return NextResponse.json({ success: true, data: pendingDues });
 
