@@ -39,6 +39,12 @@ const TripSchema = new mongoose.Schema({
     fasttag: { type: Number, default: 0, min: 0 },
     driver_allowance: { type: Number, default: 0, min: 0 },
     service: { type: Number, default: 0, min: 0 },
+
+    // New Fields
+    adblue: { type: Number, default: 0, min: 0 },
+    grease: { type: Number, default: 0, min: 0 },
+    air: { type: Number, default: 0, min: 0 },
+
     deposit_to_kdr_bank: { type: Number, default: 0, min: 0 },
     other_expense: { type: Number, default: 0, min: 0 },
 
@@ -78,6 +84,9 @@ TripSchema.pre('validate', function () {
         (this.fasttag || 0) +
         (this.driver_allowance || 0) +
         (this.service || 0) +
+        (this.adblue || 0) +
+        (this.grease || 0) +
+        (this.air || 0) +
         (this.deposit_to_kdr_bank || 0) +
         (this.other_expense || 0)
     );

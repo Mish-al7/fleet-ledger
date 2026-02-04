@@ -301,8 +301,11 @@ export default function VehicleLedgerPage() {
                                                         <div className="flex flex-wrap gap-x-6 gap-y-2">
                                                             {row.fuel > 0 && <span className="text-xs text-slate-400">Fuel: <span className="text-white">₹{row.fuel.toLocaleString()}</span></span>}
                                                             {row.fasttag > 0 && <span className="text-xs text-slate-400">FastTag: <span className="text-white">₹{row.fasttag.toLocaleString()}</span></span>}
-                                                            {row.driver_allowance > 0 && <span className="text-xs text-slate-400">Allowance: <span className="text-white">₹{row.driver_allowance.toLocaleString()}</span></span>}
-                                                            {row.service > 0 && <span className="text-xs text-slate-400">Service: <span className="text-white">₹{row.service.toLocaleString()}</span></span>}
+                                                            {row.driver_allowance > 0 && <span className="text-xs text-slate-400">Allowance (Driver Bata): <span className="text-white">₹{row.driver_allowance.toLocaleString()}</span></span>}
+                                                            {row.service > 0 && <span className="text-xs text-slate-400">Workshop Service: <span className="text-white">₹{row.service.toLocaleString()}</span></span>}
+                                                            {row.adblue > 0 && <span className="text-xs text-slate-400">AdBlue: <span className="text-white">₹{row.adblue.toLocaleString()}</span></span>}
+                                                            {row.grease > 0 && <span className="text-xs text-slate-400">Grease: <span className="text-white">₹{row.grease.toLocaleString()}</span></span>}
+                                                            {row.air > 0 && <span className="text-xs text-slate-400">Air: <span className="text-white">₹{row.air.toLocaleString()}</span></span>}
                                                             {row.deposit_to_kdr_bank > 0 && <span className="text-xs text-slate-400">Bank Dep: <span className="text-white">₹{row.deposit_to_kdr_bank.toLocaleString()}</span></span>}
                                                             {row.other_expense > 0 && <span className="text-xs text-slate-400">Other: <span className="text-white">₹{row.other_expense.toLocaleString()}</span></span>}
                                                         </div>
