@@ -39,6 +39,9 @@ export default function EditTripModal({ trip, onClose, onUpdate }) {
         fasttag: '',
         driver_allowance: '',
         service: '',
+        adblue: '',
+        grease: '',
+        air: '',
         deposit_to_kdr_bank: '',
         other_expense: '',
         notes: ''
@@ -56,6 +59,9 @@ export default function EditTripModal({ trip, onClose, onUpdate }) {
                 fasttag: trip.fasttag || '',
                 driver_allowance: trip.driver_allowance || '',
                 service: trip.service || '',
+                adblue: trip.adblue || '',
+                grease: trip.grease || '',
+                air: trip.air || '',
                 deposit_to_kdr_bank: trip.deposit_to_kdr_bank || '',
                 other_expense: trip.other_expense || '',
                 notes: trip.notes || ''
@@ -115,7 +121,8 @@ export default function EditTripModal({ trip, onClose, onUpdate }) {
     // Calculate Total Expenses for Preview
     const totalExpenses = [
         'fuel', 'fasttag', 'driver_allowance',
-        'service', 'deposit_to_kdr_bank', 'other_expense'
+        'service', 'adblue', 'grease', 'air',
+        'deposit_to_kdr_bank', 'other_expense'
     ].reduce((sum, field) => sum + (Number(formData[field]) || 0), 0);
 
     if (!trip) return null;
@@ -200,8 +207,11 @@ export default function EditTripModal({ trip, onClose, onUpdate }) {
                                 <InputGroup label="Income" name="income" value={formData.income} onChange={handleChange} type="number" placeholder="0" required />
                                 <InputGroup label="Fuel" name="fuel" value={formData.fuel} onChange={handleChange} type="number" placeholder="0" />
                                 <InputGroup label="FastTag" name="fasttag" value={formData.fasttag} onChange={handleChange} type="number" placeholder="0" />
-                                <InputGroup label="Allowance" name="driver_allowance" value={formData.driver_allowance} onChange={handleChange} type="number" placeholder="0" />
-                                <InputGroup label="Service" name="service" value={formData.service} onChange={handleChange} type="number" placeholder="0" />
+                                <InputGroup label="Allowance (Driver Bata)" name="driver_allowance" value={formData.driver_allowance} onChange={handleChange} type="number" placeholder="0" />
+                                <InputGroup label="Workshop Service" name="service" value={formData.service} onChange={handleChange} type="number" placeholder="0" />
+                                <InputGroup label="AdBlue" name="adblue" value={formData.adblue} onChange={handleChange} type="number" placeholder="0" />
+                                <InputGroup label="Grease" name="grease" value={formData.grease} onChange={handleChange} type="number" placeholder="0" />
+                                <InputGroup label="Air" name="air" value={formData.air} onChange={handleChange} type="number" placeholder="0" />
                                 <InputGroup label="Deposit to Bank" name="deposit_to_kdr_bank" value={formData.deposit_to_kdr_bank} onChange={handleChange} type="number" placeholder="0" />
                             </div>
 
