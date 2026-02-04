@@ -14,6 +14,7 @@ export default function ExpensesPage() {
     // Filters
     const [filterVehicle, setFilterVehicle] = useState('');
     const [filterFrequency, setFilterFrequency] = useState('');
+    const [activeTab, setActiveTab] = useState('payments'); // 'payments' | 'recurring'
 
     // Modal
     const [showModal, setShowModal] = useState(false);
@@ -27,6 +28,12 @@ export default function ExpensesPage() {
     useEffect(() => {
         fetchExpenses();
     }, [filterVehicle, filterFrequency]);
+
+    // Handle tab change
+    const handleTabChange = (tab) => {
+        setActiveTab(tab);
+        setFilterFrequency(''); // Reset frequency filter when switching tabs
+    };
 
     async function fetchInitialData() {
         try {
@@ -107,6 +114,14 @@ export default function ExpensesPage() {
         setShowDuesModal(false);
     };
 
+    const filteredExpenses = expenses.filter(expense => {
+        if (activeTab === 'payments') {
+            return expense.frequency === 'One-time';
+        } else {
+            return expense.frequency !== 'One-time';
+        }
+    });
+
     return (
         <div className="space-y-6">
             {/* Header */}
@@ -120,14 +135,16 @@ export default function ExpensesPage() {
                 </div>
 
                 <div className="flex gap-2 w-full md:w-auto">
-                    <button
-                        onClick={handleProcessRecurring}
-                        disabled={processing}
-                        className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg border border-slate-700 flex items-center gap-2 transition-colors"
-                    >
-                        <RefreshCw size={18} className={processing ? 'animate-spin' : ''} />
-                        {processing ? 'Processing...' : 'Process Due'}
-                    </button>
+                    {activeTab === 'recurring' && (
+                        <button
+                            onClick={handleProcessRecurring}
+                            disabled={processing}
+                            className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg border border-slate-700 flex items-center gap-2 transition-colors"
+                        >
+                            <RefreshCw size={18} className={processing ? 'animate-spin' : ''} />
+                            {processing ? 'Processing...' : 'Process Due'}
+                        </button>
+                    )}
                     <button
                         onClick={() => { setEditingExpense(null); setShowModal(true); }}
                         className="flex-1 md:flex-none px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-lg flex items-center justify-center gap-2 transition-colors"
@@ -136,6 +153,30 @@ export default function ExpensesPage() {
                         Add Expense
                     </button>
                 </div>
+            </div>
+
+            {/* Tabs */}
+            <div className="flex border-b border-slate-800">
+                <button
+                    onClick={() => handleTabChange('payments')}
+                    className={`px-6 py-3 text-sm font-medium flex items-center gap-2 border-b-2 transition-colors ${activeTab === 'payments'
+                        ? 'border-blue-500 text-blue-400'
+                        : 'border-transparent text-slate-400 hover:text-slate-200'
+                        }`}
+                >
+                    <Wallet size={16} />
+                    Payments
+                </button>
+                <button
+                    onClick={() => handleTabChange('recurring')}
+                    className={`px-6 py-3 text-sm font-medium flex items-center gap-2 border-b-2 transition-colors ${activeTab === 'recurring'
+                        ? 'border-blue-500 text-blue-400'
+                        : 'border-transparent text-slate-400 hover:text-slate-200'
+                        }`}
+                >
+                    <RefreshCw size={16} />
+                    Recurring Sheet
+                </button>
             </div>
 
             {/* Filters */}
@@ -157,17 +198,18 @@ export default function ExpensesPage() {
                     ))}
                 </select>
 
-                <select
-                    value={filterFrequency}
-                    onChange={(e) => setFilterFrequency(e.target.value)}
-                    className="bg-slate-950 border border-slate-700 text-white text-sm rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
-                >
-                    <option value="">All Frequencies</option>
-                    <option value="One-time">One-time</option>
-                    <option value="Monthly">Monthly</option>
-                    <option value="Quarterly">Quarterly</option>
-                    <option value="Yearly">Yearly</option>
-                </select>
+                {activeTab === 'recurring' && (
+                    <select
+                        value={filterFrequency}
+                        onChange={(e) => setFilterFrequency(e.target.value)}
+                        className="bg-slate-950 border border-slate-700 text-white text-sm rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                    >
+                        <option value="">All Frequencies</option>
+                        <option value="Monthly">Monthly</option>
+                        <option value="Quarterly">Quarterly</option>
+                        <option value="Yearly">Yearly</option>
+                    </select>
+                )}
             </div>
 
             {/* Expenses Table */}
@@ -190,12 +232,14 @@ export default function ExpensesPage() {
                                 <tr>
                                     <td colSpan="7" className="p-8 text-center text-slate-500">Loading...</td>
                                 </tr>
-                            ) : expenses.length === 0 ? (
+                            ) : filteredExpenses.length === 0 ? (
                                 <tr>
-                                    <td colSpan="7" className="p-8 text-center text-slate-500">No expenses found.</td>
+                                    <td colSpan="7" className="p-8 text-center text-slate-500">
+                                        No {activeTab === 'payments' ? 'payments' : 'recurring expenses'} found.
+                                    </td>
                                 </tr>
                             ) : (
-                                expenses.map(expense => (
+                                filteredExpenses.map(expense => (
                                     <tr key={expense._id} className="group hover:bg-slate-800/30 transition-colors">
                                         <td className="p-4 text-slate-300 whitespace-nowrap">
                                             {new Date(expense.start_date).toLocaleDateString('en-GB')}
