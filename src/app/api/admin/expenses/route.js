@@ -16,18 +16,40 @@ export async function GET(req) {
         const { searchParams } = new URL(req.url);
         const vehicleId = searchParams.get('vehicle_id');
         const frequency = searchParams.get('frequency');
+        const page = parseInt(searchParams.get('page')) || 1;
+        const limit = parseInt(searchParams.get('limit')) || 100;
+        const skip = (page - 1) * limit;
 
         let query = {};
         if (vehicleId) query.vehicle_id = vehicleId;
         if (vehicleId === 'null') query.vehicle_id = null; // Clean filter for company-level
-        if (frequency) query.frequency = frequency;
 
-        const expenses = await AdminExpense.find(query)
-            .sort({ start_date: -1, createdAt: -1 })
-            .populate('vehicle_id', 'vehicle_no')
-            .lean();
+        if (frequency === 'recurring') {
+            query.frequency = { $ne: 'One-time' };
+        } else if (frequency) {
+            query.frequency = frequency;
+        }
 
-        return NextResponse.json({ success: true, data: expenses });
+        const [expenses, total] = await Promise.all([
+            AdminExpense.find(query)
+                .sort({ start_date: -1, createdAt: -1 })
+                .populate('vehicle_id', 'vehicle_no')
+                .skip(skip)
+                .limit(limit)
+                .lean(),
+            AdminExpense.countDocuments(query)
+        ]);
+
+        return NextResponse.json({
+            success: true,
+            data: expenses,
+            pagination: {
+                total,
+                page,
+                limit,
+                pages: Math.ceil(total / limit)
+            }
+        });
     } catch (error) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }

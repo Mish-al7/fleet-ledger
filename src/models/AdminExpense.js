@@ -53,4 +53,11 @@ const AdminExpenseSchema = new mongoose.Schema({
     timestamps: true
 });
 
+// Add indexes for performance
+AdminExpenseSchema.index({ vehicle_id: 1 });
+AdminExpenseSchema.index({ frequency: 1 });
+AdminExpenseSchema.index({ start_date: -1 });
+AdminExpenseSchema.index({ recurring_master_id: 1 });
+AdminExpenseSchema.index({ status: 1 });
+
 export default mongoose.models.AdminExpense || mongoose.model('AdminExpense', AdminExpenseSchema);

@@ -21,6 +21,21 @@ export async function GET(req) {
         }).populate('vehicle_id', 'vehicle_no');
 
         const now = new Date();
+        // Find all existing completed instances for these recurring masters in one go
+        const masterIds = recurringExpenses.map(e => e._id);
+        const allExistingInstances = await AdminExpense.find({
+            recurring_master_id: { $in: masterIds },
+            status: 'Completed'
+        }).select('start_date recurring_master_id').lean();
+
+        // Group existing dates by masterId for efficient lookup
+        const instancesByMaster = {};
+        allExistingInstances.forEach(inst => {
+            const mId = inst.recurring_master_id.toString();
+            if (!instancesByMaster[mId]) instancesByMaster[mId] = new Set();
+            instancesByMaster[mId].add(new Date(inst.start_date).toISOString().split('T')[0]);
+        });
+
         const pendingDues = [];
 
         for (const expense of recurringExpenses) {
@@ -35,21 +50,13 @@ export async function GET(req) {
                 if (expense.frequency === 'Monthly') current.setMonth(current.getMonth() + 1);
                 else if (expense.frequency === 'Quarterly') current.setMonth(current.getMonth() + 3);
                 else if (expense.frequency === 'Yearly') current.setFullYear(current.getFullYear() + 1);
-                else break; // Should not happen with frequency filter above
+                else break;
 
-                // Safety break for infinite loops
-                if (expectedDates.length > 24) break;
+                // Safety break
+                if (expectedDates.length > 36) break; // Increased slightly for longer history
             }
 
-            // Find existing instances for this master
-            const existingInstances = await AdminExpense.find({
-                recurring_master_id: expense._id,
-                status: 'Completed'
-            }).select('start_date');
-
-            const existingDatesSet = new Set(existingInstances.map(inst =>
-                new Date(inst.start_date).toISOString().split('T')[0]
-            ));
+            const existingDatesSet = instancesByMaster[expense._id.toString()] || new Set();
 
             // Identify Gaps
             for (const expectedDate of expectedDates) {

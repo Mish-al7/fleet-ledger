@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Filter, RefreshCw, Edit2, Trash2, PauseCircle, PlayCircle, Wallet, Calendar, Truck } from 'lucide-react';
+import { Plus, Filter, RefreshCw, Edit2, Trash2, PauseCircle, PlayCircle, Wallet, Calendar, Truck, ChevronLeft, ChevronRight } from 'lucide-react';
 import AddExpenseModal from '@/components/admin/expenses/AddExpenseModal';
 import ProcessDuesModal from '@/components/admin/expenses/ProcessDuesModal';
 
@@ -10,6 +10,10 @@ export default function ExpensesPage() {
     const [vehicles, setVehicles] = useState([]);
     const [loading, setLoading] = useState(true);
     const [processing, setProcessing] = useState(false);
+
+    // Pagination
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
 
     // Filters
     const [filterVehicle, setFilterVehicle] = useState('');
@@ -26,43 +30,54 @@ export default function ExpensesPage() {
     }, []);
 
     useEffect(() => {
-        fetchExpenses();
-    }, [filterVehicle, filterFrequency]);
+        setCurrentPage(1); // Reset to page 1 when filters change
+        fetchExpenses(1);
+    }, [filterVehicle, filterFrequency, activeTab]);
 
     // Handle tab change
     const handleTabChange = (tab) => {
         setActiveTab(tab);
         setFilterFrequency(''); // Reset frequency filter when switching tabs
+        setCurrentPage(1);
     };
 
     async function fetchInitialData() {
         try {
-            const [vRes, eRes] = await Promise.all([
-                fetch('/api/vehicles'),
-                fetch('/api/admin/expenses')
-            ]);
+            const vRes = await fetch('/api/vehicles');
             const vJson = await vRes.json();
-            const eJson = await eRes.json();
-
             if (vJson.success) setVehicles(vJson.data);
-            if (eJson.success) setExpenses(eJson.data);
         } catch (error) {
             console.error(error);
-        } finally {
-            setLoading(false);
         }
     }
 
-    async function fetchExpenses() {
+    async function fetchExpenses(page = currentPage) {
         setLoading(true);
         try {
             const params = new URLSearchParams();
             if (filterVehicle) params.append('vehicle_id', filterVehicle);
-            if (filterFrequency) params.append('frequency', filterFrequency);
+
+            // Handle frequency based on tab
+            if (activeTab === 'payments') {
+                params.append('frequency', 'One-time');
+            } else if (filterFrequency) {
+                params.append('frequency', filterFrequency);
+            } else {
+                params.append('frequency', 'recurring');
+            }
+
+            params.append('page', page);
+            params.append('limit', 50);
 
             const res = await fetch(`/api/admin/expenses?${params.toString()}`);
             const json = await res.json();
-            if (json.success) setExpenses(json.data);
+            if (json.success) {
+                setExpenses(json.data);
+                if (json.pagination) {
+                    setTotalPages(json.pagination.pages);
+                    setCurrentPage(json.pagination.page);
+                }
+            }
         } catch (error) {
             console.error(error);
         } finally {
@@ -114,13 +129,7 @@ export default function ExpensesPage() {
         setShowDuesModal(false);
     };
 
-    const filteredExpenses = expenses.filter(expense => {
-        if (activeTab === 'payments') {
-            return expense.frequency === 'One-time';
-        } else {
-            return expense.frequency !== 'One-time';
-        }
-    });
+    const filteredExpenses = expenses;
 
     return (
         <div className="space-y-6">
@@ -304,6 +313,31 @@ export default function ExpensesPage() {
                     </table>
                 </div>
             </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+                <div className="flex items-center justify-between bg-slate-900 border border-slate-800 p-4 rounded-xl">
+                    <button
+                        disabled={currentPage === 1 || loading}
+                        onClick={() => fetchExpenses(currentPage - 1)}
+                        className="px-4 py-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-300 rounded-lg border border-slate-700 flex items-center gap-2 transition-colors text-sm"
+                    >
+                        <ChevronLeft size={16} />
+                        Previous
+                    </button>
+                    <span className="text-slate-400 text-sm">
+                        Page <span className="text-white font-medium">{currentPage}</span> of <span className="text-white font-medium">{totalPages}</span>
+                    </span>
+                    <button
+                        disabled={currentPage === totalPages || loading}
+                        onClick={() => fetchExpenses(currentPage + 1)}
+                        className="px-4 py-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-300 rounded-lg border border-slate-700 flex items-center gap-2 transition-colors text-sm"
+                    >
+                        Next
+                        <ChevronRight size={16} />
+                    </button>
+                </div>
+            )}
 
             {showModal && (
                 <AddExpenseModal
