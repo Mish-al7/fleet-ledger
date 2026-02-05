@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Navbar from '@/app/components/Navbar';
-import { Calendar, MapPin, Clock, Car, FileText, Eye } from 'lucide-react';
+import BookingCalendar from '@/app/components/BookingCalendar';
+import { Calendar as CalendarIcon, MapPin, Clock, Car, FileText, Eye } from 'lucide-react';
 
 // Status Badge Component
 const StatusBadge = ({ status }) => {
@@ -46,7 +47,7 @@ const BookingCard = ({ booking, onViewDetails }) => (
                 <span className="truncate">{booking.pickup_location} → {booking.trip_destination}</span>
             </div>
             <div className="flex items-center gap-2 text-slate-400">
-                <Calendar size={14} />
+                <CalendarIcon size={14} />
                 <span>
                     {new Date(booking.journey_start_date).toLocaleDateString()} - {new Date(booking.journey_return_date).toLocaleDateString()}
                 </span>
@@ -147,6 +148,7 @@ export default function MyBookingsPage() {
     const [error, setError] = useState('');
     const [selectedBooking, setSelectedBooking] = useState(null);
     const [statusFilter, setStatusFilter] = useState('all');
+    const [viewMode, setViewMode] = useState('list'); // 'list' | 'calendar'
 
     useEffect(() => {
         fetchBookings();
@@ -189,20 +191,45 @@ export default function MyBookingsPage() {
             </div>
 
             <main className="max-w-lg mx-auto px-6 py-6">
-                {/* Status Filter Pills */}
-                <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-                    {['all', 'pending', 'approved', 'rejected'].map(status => (
+                {/* View API & Status Filter */}
+                <div className="flex flex-col sm:flex-row gap-4 mb-6 justify-between items-start sm:items-center">
+                    {/* Status Filter Pills */}
+                    <div className="flex gap-2 overflow-x-auto pb-2 sm:pb-0 no-scrollbar">
+                        {['all', 'pending', 'approved', 'rejected'].map(status => (
+                            <button
+                                key={status}
+                                onClick={() => setStatusFilter(status)}
+                                className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${statusFilter === status
+                                    ? 'bg-blue-600 text-white'
+                                    : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                                    }`}
+                            >
+                                {status.charAt(0).toUpperCase() + status.slice(1)}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* View Toggle */}
+                    <div className="bg-slate-800 p-1 rounded-lg flex items-center shrink-0">
                         <button
-                            key={status}
-                            onClick={() => setStatusFilter(status)}
-                            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${statusFilter === status
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                            onClick={() => setViewMode('list')}
+                            className={`px-3 py-1 rounded-md text-sm font-medium flex items-center gap-2 transition-all ${viewMode === 'list'
+                                ? 'bg-slate-700 text-white shadow'
+                                : 'text-slate-400 hover:text-white'
                                 }`}
                         >
-                            {status.charAt(0).toUpperCase() + status.slice(1)}
+                            <FileText size={16} /> List
                         </button>
-                    ))}
+                        <button
+                            onClick={() => setViewMode('calendar')}
+                            className={`px-3 py-1 rounded-md text-sm font-medium flex items-center gap-2 transition-all ${viewMode === 'calendar'
+                                ? 'bg-slate-700 text-white shadow'
+                                : 'text-slate-400 hover:text-white'
+                                }`}
+                        >
+                            <CalendarIcon size={16} /> Calendar
+                        </button>
+                    </div>
                 </div>
 
                 {error && (
@@ -219,15 +246,25 @@ export default function MyBookingsPage() {
                         <p className="text-slate-500">No bookings found</p>
                     </div>
                 ) : (
-                    <div className="space-y-4">
-                        {filteredBookings.map(booking => (
-                            <BookingCard
-                                key={booking._id}
-                                booking={booking}
-                                onViewDetails={setSelectedBooking}
+                    <>
+                        {viewMode === 'list' ? (
+                            <div className="space-y-4">
+                                {filteredBookings.map(booking => (
+                                    <BookingCard
+                                        key={booking._id}
+                                        booking={booking}
+                                        onViewDetails={setSelectedBooking}
+                                    />
+                                ))}
+                            </div>
+                        ) : (
+                            <BookingCalendar
+                                bookings={filteredBookings}
+                                onBookingClick={setSelectedBooking}
+                                showFullVehicleNo={true}
                             />
-                        ))}
-                    </div>
+                        )}
+                    </>
                 )}
             </main>
 

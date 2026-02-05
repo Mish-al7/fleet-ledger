@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Calendar, MapPin, Clock, Car, FileText, Eye, Check, X, Filter, ChevronDown, Trash2, Edit } from 'lucide-react';
+import { Calendar as CalendarIcon, MapPin, Clock, Car, FileText, Eye, Check, X, Filter, ChevronDown, Trash2, Edit } from 'lucide-react';
 import BookingEditModal from './BookingEditModal';
+import BookingCalendar from '@/app/components/BookingCalendar';
 
 // Status Badge Component
 const StatusBadge = ({ status }) => {
@@ -137,6 +138,7 @@ export default function AdminBookingsPage() {
     const [selectedBooking, setSelectedBooking] = useState(null);
     const [editingBooking, setEditingBooking] = useState(null);
     const [actionLoading, setActionLoading] = useState(false);
+    const [viewMode, setViewMode] = useState('list'); // 'list' | 'calendar'
 
     // Filters
     const [statusFilter, setStatusFilter] = useState('all');
@@ -321,8 +323,34 @@ export default function AdminBookingsPage() {
                 </div>
             )}
 
-            {/* Bookings Table */}
+            {/* Bookings Content */}
             <div className="bg-slate-900/50 border border-slate-800 rounded-xl overflow-hidden">
+                <div className="p-4 border-b border-slate-800 flex justify-between items-center">
+                    <h2 className="text-lg font-bold text-white">
+                        {viewMode === 'list' ? 'Booking List' : 'Calendar View'}
+                    </h2>
+                    <div className="bg-slate-800 p-1 rounded-lg flex items-center">
+                        <button
+                            onClick={() => setViewMode('list')}
+                            className={`px-3 py-1.5 rounded-md text-sm font-medium flex items-center gap-2 transition-all ${viewMode === 'list'
+                                ? 'bg-slate-700 text-white shadow'
+                                : 'text-slate-400 hover:text-white'
+                                }`}
+                        >
+                            <FileText size={16} /> List
+                        </button>
+                        <button
+                            onClick={() => setViewMode('calendar')}
+                            className={`px-3 py-1.5 rounded-md text-sm font-medium flex items-center gap-2 transition-all ${viewMode === 'calendar'
+                                ? 'bg-slate-700 text-white shadow'
+                                : 'text-slate-400 hover:text-white'
+                                }`}
+                        >
+                            <CalendarIcon size={16} /> Calendar
+                        </button>
+                    </div>
+                </div>
+
                 {loading ? (
                     <div className="p-8 text-center text-slate-400">Loading bookings...</div>
                 ) : bookings.length === 0 ? (
@@ -331,88 +359,100 @@ export default function AdminBookingsPage() {
                         <p className="text-slate-500">No bookings found</p>
                     </div>
                 ) : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
-                            <thead className="bg-slate-800/50 border-b border-slate-700">
-                                <tr>
-                                    <th className="px-4 py-3 text-left text-slate-400 font-medium">Booking #</th>
-                                    <th className="px-4 py-3 text-left text-slate-400 font-medium">Vehicle</th>
-                                    <th className="px-4 py-3 text-left text-slate-400 font-medium">Customer</th>
-                                    <th className="px-4 py-3 text-left text-slate-400 font-medium">Route</th>
-                                    <th className="px-4 py-3 text-left text-slate-400 font-medium">Dates</th>
-                                    <th className="px-4 py-3 text-left text-slate-400 font-medium">Status</th>
-                                    <th className="px-4 py-3 text-center text-slate-400 font-medium">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-800">
-                                {bookings.map(booking => (
-                                    <tr key={booking._id} className="hover:bg-slate-800/30 transition-colors">
-                                        <td className="px-4 py-3 text-white font-medium">{booking.booking_no}</td>
-                                        <td className="px-4 py-3 text-slate-300">{booking.vehicle_no}</td>
-                                        <td className="px-4 py-3">
-                                            <div className="text-white">{booking.customer_name}</div>
-                                            <div className="text-xs text-slate-500">{booking.customer_phone}</div>
-                                        </td>
-                                        <td className="px-4 py-3 text-slate-300 max-w-[200px] truncate">
-                                            {booking.pickup_location} → {booking.trip_destination}
-                                        </td>
-                                        <td className="px-4 py-3 text-slate-300 text-xs">
-                                            {new Date(booking.journey_start_date).toLocaleDateString()} - {new Date(booking.journey_return_date).toLocaleDateString()}
-                                        </td>
-                                        <td className="px-4 py-3">
-                                            <StatusBadge status={booking.status} />
-                                        </td>
-                                        <td className="px-4 py-3">
-                                            <div className="flex items-center justify-center gap-2">
-                                                <button
-                                                    onClick={() => setSelectedBooking(booking)}
-                                                    className="p-2 text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
-                                                    title="View Details"
-                                                >
-                                                    <Eye size={16} />
-                                                </button>
-
-                                                <button
-                                                    onClick={() => setEditingBooking(booking)}
-                                                    className="p-2 text-amber-400 hover:bg-amber-500/10 rounded-lg transition-colors"
-                                                    title="Edit Booking"
-                                                >
-                                                    <Edit size={16} />
-                                                </button>
-
-                                                <button
-                                                    onClick={() => handleDelete(booking._id)}
-                                                    className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
-                                                    title="Delete Booking"
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
-
-                                                {booking.status === 'pending' && (
-                                                    <>
+                    <>
+                        {viewMode === 'list' ? (
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-sm">
+                                    <thead className="bg-slate-800/50 border-b border-slate-700">
+                                        <tr>
+                                            <th className="px-4 py-3 text-left text-slate-400 font-medium">Booking #</th>
+                                            <th className="px-4 py-3 text-left text-slate-400 font-medium">Vehicle</th>
+                                            <th className="px-4 py-3 text-left text-slate-400 font-medium">Customer</th>
+                                            <th className="px-4 py-3 text-left text-slate-400 font-medium">Route</th>
+                                            <th className="px-4 py-3 text-left text-slate-400 font-medium">Dates</th>
+                                            <th className="px-4 py-3 text-left text-slate-400 font-medium">Status</th>
+                                            <th className="px-4 py-3 text-center text-slate-400 font-medium">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-800">
+                                        {bookings.map(booking => (
+                                            <tr key={booking._id} className="hover:bg-slate-800/30 transition-colors">
+                                                <td className="px-4 py-3 text-white font-medium">{booking.booking_no}</td>
+                                                <td className="px-4 py-3 text-slate-300">{booking.vehicle_no}</td>
+                                                <td className="px-4 py-3">
+                                                    <div className="text-white">{booking.customer_name}</div>
+                                                    <div className="text-xs text-slate-500">{booking.customer_phone}</div>
+                                                </td>
+                                                <td className="px-4 py-3 text-slate-300 max-w-[200px] truncate">
+                                                    {booking.pickup_location} → {booking.trip_destination}
+                                                </td>
+                                                <td className="px-4 py-3 text-slate-300 text-xs">
+                                                    {new Date(booking.journey_start_date).toLocaleDateString()} - {new Date(booking.journey_return_date).toLocaleDateString()}
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <StatusBadge status={booking.status} />
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <div className="flex items-center justify-center gap-2">
                                                         <button
-                                                            onClick={() => handleStatusChange(booking._id, 'approved')}
-                                                            className="p-2 text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition-colors"
-                                                            title="Approve"
+                                                            onClick={() => setSelectedBooking(booking)}
+                                                            className="p-2 text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
+                                                            title="View Details"
                                                         >
-                                                            <Check size={16} />
+                                                            <Eye size={16} />
                                                         </button>
+
                                                         <button
-                                                            onClick={() => handleStatusChange(booking._id, 'rejected')}
-                                                            className="p-2 text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
-                                                            title="Reject"
+                                                            onClick={() => setEditingBooking(booking)}
+                                                            className="p-2 text-amber-400 hover:bg-amber-500/10 rounded-lg transition-colors"
+                                                            title="Edit Booking"
                                                         >
-                                                            <X size={16} />
+                                                            <Edit size={16} />
                                                         </button>
-                                                    </>
-                                                )}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+
+                                                        <button
+                                                            onClick={() => handleDelete(booking._id)}
+                                                            className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                                                            title="Delete Booking"
+                                                        >
+                                                            <Trash2 size={16} />
+                                                        </button>
+
+                                                        {booking.status === 'pending' && (
+                                                            <>
+                                                                <button
+                                                                    onClick={() => handleStatusChange(booking._id, 'approved')}
+                                                                    className="p-2 text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition-colors"
+                                                                    title="Approve"
+                                                                >
+                                                                    <Check size={16} />
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleStatusChange(booking._id, 'rejected')}
+                                                                    className="p-2 text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
+                                                                    title="Reject"
+                                                                >
+                                                                    <X size={16} />
+                                                                </button>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        ) : (
+                            <div className="p-4">
+                                <BookingCalendar
+                                    bookings={bookings}
+                                    onBookingClick={setSelectedBooking}
+                                    showFullVehicleNo={true}
+                                />
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
 
