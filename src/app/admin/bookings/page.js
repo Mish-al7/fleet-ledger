@@ -3,7 +3,9 @@
 import { useState, useEffect } from 'react';
 import { Calendar as CalendarIcon, MapPin, Clock, Car, FileText, Eye, Check, X, Filter, ChevronDown, Trash2, Edit } from 'lucide-react';
 import BookingEditModal from './BookingEditModal';
+import BookingCreateModal from './BookingCreateModal';
 import BookingCalendar from '@/app/components/BookingCalendar';
+import { Plus } from 'lucide-react';
 
 // Status Badge Component
 const StatusBadge = ({ status }) => {
@@ -137,6 +139,7 @@ export default function AdminBookingsPage() {
     const [error, setError] = useState('');
     const [selectedBooking, setSelectedBooking] = useState(null);
     const [editingBooking, setEditingBooking] = useState(null);
+    const [isCreating, setIsCreating] = useState(false);
     const [actionLoading, setActionLoading] = useState(false);
     const [viewMode, setViewMode] = useState('list'); // 'list' | 'calendar'
 
@@ -254,9 +257,18 @@ export default function AdminBookingsPage() {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div>
-                <h1 className="text-2xl font-bold text-white">Bookings</h1>
-                <p className="text-slate-400 text-sm mt-1">Manage vehicle reservations</p>
+            <div className="flex justify-between items-start">
+                <div>
+                    <h1 className="text-2xl font-bold text-white">Bookings</h1>
+                    <p className="text-slate-400 text-sm mt-1">Manage vehicle reservations</p>
+                </div>
+                <button
+                    onClick={() => setIsCreating(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-medium transition-all shadow-lg shadow-emerald-500/20 active:scale-[0.98]"
+                >
+                    <Plus size={18} />
+                    <span>Add Booking</span>
+                </button>
             </div>
 
             {/* Filters */}
@@ -473,6 +485,14 @@ export default function AdminBookingsPage() {
                     vehicles={vehicles}
                     onClose={() => setEditingBooking(null)}
                     onUpdate={handleUpdate}
+                />
+            )}
+
+            {isCreating && (
+                <BookingCreateModal
+                    vehicles={vehicles}
+                    onClose={() => setIsCreating(false)}
+                    onCreate={fetchBookings}
                 />
             )}
         </div>
