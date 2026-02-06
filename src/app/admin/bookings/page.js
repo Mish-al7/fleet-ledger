@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Calendar, MapPin, Clock, Car, FileText, Eye, Check, X, Filter, ChevronDown, Trash2, Edit } from 'lucide-react';
+import { Calendar as CalendarIcon, MapPin, Clock, Car, FileText, Eye, Check, X, Filter, ChevronDown, Trash2, Edit } from 'lucide-react';
 import BookingEditModal from './BookingEditModal';
+import BookingCalendar from '@/app/components/BookingCalendar';
 
 // Status Badge Component
 const StatusBadge = ({ status }) => {
@@ -137,6 +138,7 @@ export default function AdminBookingsPage() {
     const [selectedBooking, setSelectedBooking] = useState(null);
     const [editingBooking, setEditingBooking] = useState(null);
     const [actionLoading, setActionLoading] = useState(false);
+    const [viewMode, setViewMode] = useState('list'); // 'list' | 'calendar'
 
     // Filters
     const [statusFilter, setStatusFilter] = useState('all');
@@ -321,14 +323,48 @@ export default function AdminBookingsPage() {
                 </div>
             )}
 
-            {/* Bookings Table */}
+            {/* Bookings Content */}
             <div className="bg-slate-900/50 border border-slate-800 rounded-xl overflow-hidden">
+                <div className="p-4 border-b border-slate-800 flex justify-between items-center">
+                    <h2 className="text-lg font-bold text-white">
+                        {viewMode === 'list' ? 'Booking List' : 'Calendar View'}
+                    </h2>
+                    <div className="bg-slate-800 p-1 rounded-lg flex items-center">
+                        <button
+                            onClick={() => setViewMode('list')}
+                            className={`px-3 py-1.5 rounded-md text-sm font-medium flex items-center gap-2 transition-all ${viewMode === 'list'
+                                ? 'bg-slate-700 text-white shadow'
+                                : 'text-slate-400 hover:text-white'
+                                }`}
+                        >
+                            <FileText size={16} /> List
+                        </button>
+                        <button
+                            onClick={() => setViewMode('calendar')}
+                            className={`px-3 py-1.5 rounded-md text-sm font-medium flex items-center gap-2 transition-all ${viewMode === 'calendar'
+                                ? 'bg-slate-700 text-white shadow'
+                                : 'text-slate-400 hover:text-white'
+                                }`}
+                        >
+                            <CalendarIcon size={16} /> Calendar
+                        </button>
+                    </div>
+                </div>
+
                 {loading ? (
                     <div className="p-8 text-center text-slate-400">Loading bookings...</div>
                 ) : bookings.length === 0 ? (
                     <div className="p-12 text-center">
                         <FileText size={48} className="mx-auto text-slate-700 mb-4" />
                         <p className="text-slate-500">No bookings found</p>
+                    </div>
+                ) : viewMode === 'calendar' ? (
+                    <div className="p-4">
+                        <BookingCalendar
+                            bookings={bookings}
+                            onBookingClick={setSelectedBooking}
+                            showFullVehicleNo={true}
+                        />
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
