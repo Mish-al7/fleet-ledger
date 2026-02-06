@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import dbConnect from '@/lib/dbConnect';
 import TripSheet from '@/models/TripSheet';
+import Settings from '@/models/Settings';
 import { authOptions } from '@/lib/auth';
 import PDFDocument from 'pdfkit';
 
@@ -15,10 +16,20 @@ export async function GET(request, { params }) {
         await dbConnect();
         const { id } = await params;
 
-        const tripSheet = await TripSheet.findById(id);
+        const [tripSheet, settings] = await Promise.all([
+            TripSheet.findById(id),
+            Settings.findOne().lean()
+        ]);
+
         if (!tripSheet) {
             return NextResponse.json({ error: 'Trip Sheet not found' }, { status: 404 });
         }
+
+        // Settings fallbacks
+        const companyName = settings?.companyName || 'NEELAMBARI';
+        const tagline = settings?.tagline || 'VACATIONS';
+        const addressLine = settings?.address || '5/243 KADIRUR (PO), THALASSERY 670642';
+        const phoneNumbers = settings?.phoneNumbers || '9562828482 | 8547227022';
 
         // Create PDF
         const doc = new PDFDocument({ margin: 50, size: 'A4' });
@@ -38,11 +49,11 @@ export async function GET(request, { params }) {
         // --- PDF CONTENT START ---
 
         // 1. Header
-        doc.font('Helvetica-Bold').fontSize(24).text('NEELAMBARI', { align: 'center' });
-        doc.fontSize(14).text('VACATIONS', { align: 'center' });
+        doc.font('Helvetica-Bold').fontSize(24).text(companyName, { align: 'center' });
+        doc.fontSize(14).text(tagline, { align: 'center' });
 
         doc.font('Helvetica').fontSize(10).text(
-            '5/243 KADIRUR (PO), THALASSERY 670642 | Mob: 9562828482 | 8547227022',
+            `${addressLine} | Mob: ${phoneNumbers}`,
             { align: 'center' }
         );
 
