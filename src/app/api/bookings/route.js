@@ -24,10 +24,10 @@ export async function GET(req) {
         // Build query
         const query = {};
 
-        // Drivers can only see their own bookings
-        if (session.user.role === 'driver') {
-            query.created_by = session.user.id;
-        }
+        // Drivers can now see all bookings (Requirement Change)
+        // if (session.user.role === 'driver') {
+        //     query.created_by = session.user.id;
+        // }
 
         // Apply filters
         if (status && status !== 'all') {

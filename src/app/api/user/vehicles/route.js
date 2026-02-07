@@ -14,7 +14,7 @@ export async function GET(req) {
         await dbConnect();
 
         // Return all active vehicles (drivers can select any vehicle)
-        const vehicles = await Vehicle.find({ status: 'active' }).select('vehicle_no _id').sort({ vehicle_no: 1 });
+        const vehicles = await Vehicle.find({ status: 'active' }).select('vehicle_no nickname _id').sort({ vehicle_no: 1 });
 
         return NextResponse.json({ success: true, data: vehicles });
     } catch (error) {

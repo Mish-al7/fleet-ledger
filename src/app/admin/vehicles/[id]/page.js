@@ -32,7 +32,7 @@ export default function VehicleDetailPage() {
             if (res.ok) {
                 const data = await res.json();
                 setVehicle(data);
-                setEditData({ vehicle_no: data.vehicle_no, status: data.status });
+                setEditData({ vehicle_no: data.vehicle_no, status: data.status, nickname: data.nickname });
             } else {
                 setError('Vehicle not found');
             }
@@ -97,27 +97,40 @@ export default function VehicleDetailPage() {
                     </Link>
                     <div>
                         {isEditing ? (
-                            <div className="flex items-center gap-2">
+                            <div className="flex flex-col gap-2">
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        className="bg-slate-900 border border-slate-700 text-white px-2 py-1 rounded text-xl font-bold"
+                                        value={editData.vehicle_no}
+                                        onChange={e => setEditData({ ...editData, vehicle_no: e.target.value.toUpperCase() })}
+                                    />
+                                    <select
+                                        className="bg-slate-900 border border-slate-700 text-white px-2 py-1 rounded"
+                                        value={editData.status}
+                                        onChange={e => setEditData({ ...editData, status: e.target.value })}
+                                    >
+                                        <option value="active">Active</option>
+                                        <option value="inactive">Inactive</option>
+                                    </select>
+                                </div>
                                 <input
-                                    className="bg-slate-900 border border-slate-700 text-white px-2 py-1 rounded text-xl font-bold"
-                                    value={editData.vehicle_no}
-                                    onChange={e => setEditData({ ...editData, vehicle_no: e.target.value.toUpperCase() })}
+                                    className="bg-slate-900 border border-slate-700 text-white px-2 py-1 rounded text-sm w-full"
+                                    placeholder="Nickname"
+                                    value={editData.nickname || ''}
+                                    onChange={e => setEditData({ ...editData, nickname: e.target.value })}
                                 />
-                                <select
-                                    className="bg-slate-900 border border-slate-700 text-white px-2 py-1 rounded"
-                                    value={editData.status}
-                                    onChange={e => setEditData({ ...editData, status: e.target.value })}
-                                >
-                                    <option value="active">Active</option>
-                                    <option value="inactive">Inactive</option>
-                                </select>
                             </div>
                         ) : (
-                            <div className="flex items-center gap-3">
-                                <h1 className="text-2xl font-bold text-white">{vehicle.vehicle_no}</h1>
-                                <span className={`text-xs px-2 py-1 rounded-full ${vehicle.status === 'active' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'}`}>
-                                    {vehicle.status}
-                                </span>
+                            <div className="flex flex-col gap-1">
+                                <div className="flex items-center gap-3">
+                                    <h1 className="text-2xl font-bold text-white">{vehicle.vehicle_no}</h1>
+                                    <span className={`text-xs px-2 py-1 rounded-full ${vehicle.status === 'active' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'}`}>
+                                        {vehicle.status}
+                                    </span>
+                                </div>
+                                {vehicle.nickname && (
+                                    <p className="text-slate-400 text-lg">{vehicle.nickname}</p>
+                                )}
                             </div>
                         )}
                         <p className="text-slate-400 text-sm">Created {new Date(vehicle.createdAt).toLocaleDateString()}</p>

@@ -118,7 +118,12 @@ export default function VehicleLedgerPage() {
                     </Link>
                     <div>
                         <h1 className="text-2xl font-bold text-white">
-                            {data.vehicle ? data.vehicle.vehicle_no : 'Vehicle Ledger'}
+                            {data.vehicle ? (
+                                <>
+                                    {data.vehicle.vehicle_no}
+                                    {data.vehicle.nickname && <span className="text-slate-400 text-lg ml-2 font-normal">({data.vehicle.nickname})</span>}
+                                </>
+                            ) : 'Vehicle Ledger'}
                         </h1>
                         <div className="flex flex-col gap-1 mt-1">
                             <div className="flex items-center gap-3">
