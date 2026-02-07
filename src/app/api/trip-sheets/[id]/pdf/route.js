@@ -226,38 +226,43 @@ export async function GET(request, { params }) {
         drawTwoColRow(currentY, 'Starting Date', startD, 'Closing Date', closeD);
         currentY += rowHeight;
 
-        // Total Bill Amount
-        // Full width label ??? Or Label | Value
-        // PDF: TOTAL BILL AMOUNT Rs. (spanning mostly) | Value
-        // Let's do: Label (70%) | Value (30%)
-
+        // Total Bill Amount and Advance Amount (Two columns)
         currentY += 5; // tiny gap
-        const billLabelW = contentWidth * 0.7;
-        const billValW = contentWidth - billLabelW;
+        const amountLabelW = 150;
+        const amountValW = (contentWidth / 2) - amountLabelW;
 
-        doc.rect(startX, currentY, billLabelW, rowHeight).stroke();
+        // Left side: Total Bill Amount
+        doc.rect(startX, currentY, amountLabelW, rowHeight).stroke();
         doc.font('Helvetica-Bold').text('TOTAL BILL AMOUNT Rs.', startX + 5, currentY + 10);
 
-        doc.rect(startX + billLabelW, currentY, billValW, rowHeight).stroke();
+        doc.rect(startX + amountLabelW, currentY, amountValW, rowHeight).stroke();
         if (tripSheet.total_bill_amount) {
-            doc.text(String(tripSheet.total_bill_amount), startX + billLabelW + 5, currentY + 10);
+            doc.text(String(tripSheet.total_bill_amount), startX + amountLabelW + 5, currentY + 10);
+        }
+
+        // Right side: Advance Amount
+        const rightStartX = startX + (contentWidth / 2);
+        doc.rect(rightStartX, currentY, amountLabelW, rowHeight).stroke();
+        doc.font('Helvetica-Bold').text('ADVANCE AMOUNT Rs.', rightStartX + 5, currentY + 10);
+
+        doc.rect(rightStartX + amountLabelW, currentY, amountValW, rowHeight).stroke();
+        if (tripSheet.advance_amount) {
+            doc.text(String(tripSheet.advance_amount), rightStartX + amountLabelW + 5, currentY + 10);
         }
 
         currentY += rowHeight + 5;
 
-        // Signatures
-        // Box 1: Driver's Name & Signature
-        // Box 2: Customer Name & Signature
-        const sigBoxWidth = contentWidth / 2;
-        const sigBoxHeight = 80;
+        // Driver and Customer Names
+        // Box 1: Driver's Name
+        // Box 2: Customer Name
+        const nameBoxWidth = contentWidth / 2;
+        const nameBoxHeight = 50;
 
-        doc.rect(startX, currentY, sigBoxWidth, sigBoxHeight).stroke();
-        doc.font('Helvetica').text("Driver's Name: " + (tripSheet.driver_name || ''), startX + 5, currentY + 5);
-        doc.text("Signature:", startX + 5, currentY + 40);
+        doc.rect(startX, currentY, nameBoxWidth, nameBoxHeight).stroke();
+        doc.font('Helvetica').text("Driver's Name: " + (tripSheet.driver_name || ''), startX + 5, currentY + 15);
 
-        doc.rect(startX + sigBoxWidth, currentY, sigBoxWidth, sigBoxHeight).stroke();
-        doc.text("Customer Name: " + (tripSheet.customer_name || ''), startX + sigBoxWidth + 5, currentY + 5);
-        doc.text("Signature:", startX + sigBoxWidth + 5, currentY + 40);
+        doc.rect(startX + nameBoxWidth, currentY, nameBoxWidth, nameBoxHeight).stroke();
+        doc.text("Customer Name: " + (tripSheet.customer_name || ''), startX + nameBoxWidth + 5, currentY + 15);
 
 
         // --- PDF CONTENT END ---

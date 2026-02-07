@@ -77,6 +77,10 @@ const TripSheetSchema = new mongoose.Schema({
         type: Number,
         default: null,
     },
+    advance_amount: {
+        type: Number,
+        default: null,
+    },
     // Signatures / Names
     driver_name: {
         type: String,

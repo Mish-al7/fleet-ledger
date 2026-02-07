@@ -365,8 +365,8 @@ export default function NewBookingPage() {
                         </h3>
 
                         <div className="grid grid-cols-2 gap-4">
-                            <InputGroup label="Advance Amount" name="advance_amount" value={formData.advance_amount} onChange={handleChange} type="number" placeholder="0" />
                             <InputGroup label="Total Amount" name="total_amount" value={formData.total_amount} onChange={handleChange} type="number" placeholder="0" />
+                            <InputGroup label="Advance Amount" name="advance_amount" value={formData.advance_amount} onChange={handleChange} type="number" placeholder="0" />
                         </div>
 
                         <InputGroup label="Other Expenses" name="other_expenses" value={formData.other_expenses} onChange={handleChange} placeholder="e.g., Tolls, Parking" />

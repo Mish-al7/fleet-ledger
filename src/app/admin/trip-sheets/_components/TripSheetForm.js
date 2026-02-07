@@ -41,6 +41,7 @@ export default function TripSheetForm({ initialData = {}, isEditing = false }) {
         starting_date: initialData.starting_date ? initialData.starting_date.split('T')[0] : '',
         closing_date: initialData.closing_date ? initialData.closing_date.split('T')[0] : '',
         total_bill_amount: initialData.total_bill_amount || '',
+        advance_amount: initialData.advance_amount || '',
         driver_name: initialData.driver_name || '',
         customer_name: initialData.customer_name || '',
     });
@@ -231,10 +232,14 @@ export default function TripSheetForm({ initialData = {}, isEditing = false }) {
                 <div className="h-px bg-slate-800" />
 
                 {/* Section 3: Dates & Billing */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <InputGroup label="Starting Date" name="starting_date" type="date" value={formData.starting_date} onChange={handleChange} />
                     <InputGroup label="Closing Date" name="closing_date" type="date" value={formData.closing_date} onChange={handleChange} />
-                    <InputGroup label="Total Bill Amount (₹)" name="total_bill_amount" type="number" className="md:col-span-1" value={formData.total_bill_amount} onChange={handleChange} />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <InputGroup label="Total Bill Amount (₹)" name="total_bill_amount" type="number" value={formData.total_bill_amount} onChange={handleChange} />
+                    <InputGroup label="Advance Amount (₹)" name="advance_amount" type="number" value={formData.advance_amount} onChange={handleChange} />
                 </div>
 
                 {/* Section 4: Signatures */}
