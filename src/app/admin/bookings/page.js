@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Calendar as CalendarIcon, MapPin, Clock, Car, FileText, Eye, Check, X, Filter, ChevronDown, Trash2, Edit } from 'lucide-react';
 import BookingEditModal from './BookingEditModal';
 import BookingCalendar from '@/app/components/BookingCalendar';
+import { formatDate } from '@/lib/dateUtils';
 
 // Status Badge Component
 const StatusBadge = ({ status }) => {
@@ -80,8 +81,8 @@ const BookingDetailModal = ({ booking, onClose, onApprove, onReject, actionLoadi
                     <div className="bg-slate-800/50 rounded-xl p-4">
                         <h3 className="text-sm font-medium text-amber-400 mb-3">Schedule</h3>
                         <div className="grid grid-cols-4 gap-4 text-sm">
-                            <div><span className="text-slate-500">Start Date:</span><br /><span className="text-white">{new Date(booking.journey_start_date).toLocaleDateString()}</span></div>
-                            <div><span className="text-slate-500">Return Date:</span><br /><span className="text-white">{new Date(booking.journey_return_date).toLocaleDateString()}</span></div>
+                            <div><span className="text-slate-500">Start Date:</span><br /><span className="text-white">{formatDate(booking.journey_start_date)}</span></div>
+                            <div><span className="text-slate-500">Return Date:</span><br /><span className="text-white">{formatDate(booking.journey_return_date)}</span></div>
                             <div><span className="text-slate-500">Time:</span><br /><span className="text-white">{booking.trip_start_time} - {booking.trip_end_time}</span></div>
                             <div><span className="text-slate-500">Days / KM:</span><br /><span className="text-white">{booking.total_days} days / {booking.total_kilometers || 0} km</span></div>
                         </div>
@@ -393,7 +394,7 @@ export default function AdminBookingsPage() {
                                             {booking.pickup_location} → {booking.trip_destination}
                                         </td>
                                         <td className="px-4 py-3 text-slate-300 text-xs">
-                                            {new Date(booking.journey_start_date).toLocaleDateString()} - {new Date(booking.journey_return_date).toLocaleDateString()}
+                                            {formatDate(booking.journey_start_date)} - {formatDate(booking.journey_return_date)}
                                         </td>
                                         <td className="px-4 py-3">
                                             <StatusBadge status={booking.status} />

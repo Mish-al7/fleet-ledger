@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Plus, Search, FileText, Download, Eye } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { formatDate } from '@/lib/dateUtils';
 
 export default function TripSheetsPage() {
     const [tripSheets, setTripSheets] = useState([]);
@@ -167,7 +168,7 @@ export default function TripSheetsPage() {
                                             {sheet.trip_sheet_no}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-400">
-                                            {new Date(sheet.trip_sheet_date).toLocaleDateString()}
+                                            {formatDate(sheet.trip_sheet_date)}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
                                             {sheet.guest_name || '-'}

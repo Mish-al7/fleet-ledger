@@ -5,6 +5,7 @@ import TripSheet from '@/models/TripSheet';
 import Settings from '@/models/Settings';
 import { authOptions } from '@/lib/auth';
 import PDFDocument from 'pdfkit';
+import { formatDate } from '@/lib/dateUtils';
 
 export async function GET(request, { params }) {
     try {
@@ -73,7 +74,7 @@ export async function GET(request, { params }) {
         // 3. No and Date row
         doc.font('Helvetica').fontSize(12).text(`No. ${tripSheet.trip_sheet_no}`, startX, currentY);
 
-        const dateStr = new Date(tripSheet.trip_sheet_date).toLocaleDateString('en-GB');
+        const dateStr = formatDate(tripSheet.trip_sheet_date);
         doc.text(`Date: ${dateStr}`, startX, currentY, { align: 'right', width: contentWidth });
 
         currentY += 20;
@@ -221,8 +222,8 @@ export async function GET(request, { params }) {
         currentY += rowHeight;
 
         // Starting Date / Closing Date
-        const startD = tripSheet.starting_date ? new Date(tripSheet.starting_date).toLocaleDateString('en-GB') : '';
-        const closeD = tripSheet.closing_date ? new Date(tripSheet.closing_date).toLocaleDateString('en-GB') : '';
+        const startD = tripSheet.starting_date ? formatDate(tripSheet.starting_date) : '';
+        const closeD = tripSheet.closing_date ? formatDate(tripSheet.closing_date) : '';
         drawTwoColRow(currentY, 'Starting Date', startD, 'Closing Date', closeD);
         currentY += rowHeight;
 

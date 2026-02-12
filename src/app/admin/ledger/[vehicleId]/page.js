@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { ArrowLeft, ChevronDown, ChevronUp, Pencil, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import EditTripModal from '@/app/components/EditTripModal';
+import { formatDate } from '@/lib/dateUtils';
 
 export default function VehicleLedgerPage() {
     const { vehicleId } = useParams();
@@ -246,7 +247,7 @@ export default function VehicleLedgerPage() {
                                             className="hover:bg-slate-800/30 transition-colors cursor-pointer group"
                                         >
                                             <td className="px-6 py-4 font-mono text-slate-300">
-                                                {new Date(row.trip_date).toLocaleDateString()}
+                                                {formatDate(row.trip_date)}
                                             </td>
                                             <td className="px-6 py-4">{row.trip_route}</td>
                                             <td className="px-6 py-4 font-medium text-slate-300">{row.actual_driver_name || row.driver_id?.name || 'Unknown'}</td>

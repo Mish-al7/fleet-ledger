@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, Edit2, Trash2, Save, X, Truck, Wrench, BarChart3 } from 'lucide-react';
 import Link from 'next/link';
 import ServiceLogsTab from './_components/ServiceLogsTab';
+import { formatDate } from '@/lib/dateUtils';
 
 export default function VehicleDetailPage() {
     const { id } = useParams();
@@ -133,7 +134,7 @@ export default function VehicleDetailPage() {
                                 )}
                             </div>
                         )}
-                        <p className="text-slate-400 text-sm">Created {new Date(vehicle.createdAt).toLocaleDateString()}</p>
+                        <p className="text-slate-400 text-sm">Created {formatDate(vehicle.createdAt)}</p>
                     </div>
                 </div>
 

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Truck, Plus, Check, X } from 'lucide-react';
 import Link from 'next/link';
+import { formatDate } from '@/lib/dateUtils';
 
 export default function VehiclesPage() {
     const [vehicles, setVehicles] = useState([]);
@@ -176,7 +177,7 @@ export default function VehiclesPage() {
                                     </span>
                                     {vehicle.next_service_date && (
                                         <span className="bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 text-[10px] font-bold px-2 py-0.5 rounded-md">
-                                            Service Follow-up: {new Date(vehicle.next_service_date).toLocaleDateString('en-GB')}
+                                            Service Follow-up: {formatDate(vehicle.next_service_date)}
                                         </span>
                                     )}
                                 </div>

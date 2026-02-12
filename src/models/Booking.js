@@ -217,7 +217,7 @@ BookingSchema.statics.checkVehicleAvailability = async function (vehicleId, star
         available: timeConflicts.length === 0,
         conflicts: timeConflicts.map(b => ({
             booking_no: b.booking_no,
-            dates: `${new Date(b.journey_start_date).toLocaleDateString()} - ${new Date(b.journey_return_date).toLocaleDateString()}`,
+            dates: `${new Date(b.journey_start_date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })} - ${new Date(b.journey_return_date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}`,
             times: `${b.trip_start_time} - ${b.trip_end_time}`,
             status: b.status
         }))

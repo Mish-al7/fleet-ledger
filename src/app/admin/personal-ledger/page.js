@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { PlusCircle, Calendar, Filter, X, Edit2, Trash2 } from 'lucide-react';
+import { formatDate } from '@/lib/dateUtils';
 
 export default function PersonalLedgerPage() {
     const [entries, setEntries] = useState([]);
@@ -378,7 +379,7 @@ export default function PersonalLedgerPage() {
                                     .map((entry) => (
                                         <tr key={entry._id} className="hover:bg-slate-800/50 transition-colors">
                                             <td className="px-6 py-4 text-sm text-slate-300">
-                                                {new Date(entry.date).toLocaleDateString('en-GB')}
+                                                {formatDate(entry.date)}
                                             </td>
                                             <td className="px-6 py-4 text-sm text-white">
                                                 {entry.description}
