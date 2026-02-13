@@ -194,43 +194,123 @@ export default function DashboardPage() {
             </div>
 
             {/* Charts */}
+            {/* Charts Section */}
             <div className="grid gap-6 lg:grid-cols-2">
-                {/* Profit per Vehicle */}
-                <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+                {/* Profit by Vehicle - Horizontal Bar Chart */}
+                <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 flex flex-col">
                     <h3 className="text-lg font-bold text-white mb-4">Profit by Vehicle</h3>
-                    <ResponsiveContainer width="100%" height={300}>
-                        <BarChart data={chartData} onClick={(e) => e?.activePayload && handleBarClick(e.activePayload[0].payload)}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                            <XAxis dataKey="vehicle" stroke="#94a3b8" />
-                            <YAxis stroke="#94a3b8" />
-                            <Tooltip
-                                contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px' }}
-                                labelStyle={{ color: '#e2e8f0' }}
-                            />
-                            <Bar dataKey="profit" fill="#3b82f6" radius={[8, 8, 0, 0]} cursor="pointer" />
-                        </BarChart>
-                    </ResponsiveContainer>
+                    <div className="flex-1 min-h-[300px]" style={{ minHeight: Math.max(300, chartData.length * 60) }}>
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart
+                                layout="vertical"
+                                data={chartData}
+                                margin={{ top: 5, right: 30, left: 40, bottom: 5 }}
+                                onClick={(e) => e?.activePayload && handleBarClick(e.activePayload[0].payload)}
+                            >
+                                <CartesianGrid strokeDasharray="3 3" stroke="#334155" horizontal={false} />
+                                <XAxis type="number" stroke="#94a3b8" />
+                                <YAxis
+                                    type="category"
+                                    dataKey="vehicle"
+                                    stroke="#94a3b8"
+                                    width={100}
+                                    interval={0}
+                                    tick={{ fontSize: 12 }}
+                                />
+                                <Tooltip
+                                    cursor={{ fill: '#334155', opacity: 0.1 }}
+                                    contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px' }}
+                                    labelStyle={{ color: '#e2e8f0', fontWeight: 'bold' }}
+                                    formatter={(value) => [`₹${value.toLocaleString()}`, 'Profit']}
+                                />
+                                <Bar
+                                    dataKey="profit"
+                                    fill="#3b82f6"
+                                    radius={[0, 4, 4, 0]}
+                                    barSize={20}
+                                    cursor="pointer"
+                                />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
                 </div>
 
-                {/* Income vs Expenses */}
-                <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+                {/* Income vs Expenses - Horizontal Bar Chart */}
+                <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 flex flex-col">
                     <h3 className="text-lg font-bold text-white mb-4">Income vs Expenses</h3>
-                    <ResponsiveContainer width="100%" height={300}>
-                        <BarChart data={chartData}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                            <XAxis dataKey="vehicle" stroke="#94a3b8" />
-                            <YAxis stroke="#94a3b8" />
-                            <Tooltip
-                                contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px' }}
-                                labelStyle={{ color: '#e2e8f0' }}
-                            />
-                            <Legend />
-                            <Bar dataKey="income" fill="#10b981" radius={[8, 8, 0, 0]} />
-                            <Bar dataKey="expenses" fill="#ef4444" radius={[8, 8, 0, 0]} />
-                        </BarChart>
-                    </ResponsiveContainer>
+                    <div className="flex-1 min-h-[300px]" style={{ minHeight: Math.max(300, chartData.length * 60) }}>
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart
+                                layout="vertical"
+                                data={chartData}
+                                margin={{ top: 5, right: 30, left: 40, bottom: 5 }}
+                            >
+                                <CartesianGrid strokeDasharray="3 3" stroke="#334155" horizontal={false} />
+                                <XAxis type="number" stroke="#94a3b8" />
+                                <YAxis
+                                    type="category"
+                                    dataKey="vehicle"
+                                    stroke="#94a3b8"
+                                    width={100}
+                                    interval={0}
+                                    tick={{ fontSize: 12 }}
+                                />
+                                <Tooltip
+                                    cursor={{ fill: '#334155', opacity: 0.1 }}
+                                    contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px' }}
+                                    labelStyle={{ color: '#e2e8f0', fontWeight: 'bold' }}
+                                    formatter={(value, name) => [`₹${value.toLocaleString()}`, name === 'income' ? 'Income' : 'Expenses']}
+                                />
+                                <Legend />
+                                <Bar dataKey="income" fill="#10b981" radius={[0, 4, 4, 0]} barSize={20} />
+                                <Bar dataKey="expenses" fill="#ef4444" radius={[0, 4, 4, 0]} barSize={20} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
                 </div>
             </div>
+
+            {/* Detailed Vehicle Performance Table */}
+            {chartData.length > 0 && (
+                <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+                    <div className="p-6 border-b border-slate-800">
+                        <h3 className="text-lg font-bold text-white">Vehicle Performance Details</h3>
+                    </div>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="bg-slate-900/50 text-slate-400 text-sm uppercase tracking-wider">
+                                    <th className="p-4 font-medium border-b border-slate-800">Vehicle</th>
+                                    <th className="p-4 font-medium border-b border-slate-800 text-right">Income</th>
+                                    <th className="p-4 font-medium border-b border-slate-800 text-right">Expenses</th>
+                                    <th className="p-4 font-medium border-b border-slate-800 text-right">Profit</th>
+                                    <th className="p-4 font-medium border-b border-slate-800 text-right">Margin</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-800">
+                                {chartData.map((item) => {
+                                    const margin = item.income > 0 ? ((item.profit / item.income) * 100).toFixed(1) : '0.0';
+                                    return (
+                                        <tr
+                                            key={item.vehicleId}
+                                            className="text-slate-300 hover:bg-slate-800/50 transition-colors cursor-pointer"
+                                            onClick={() => handleBarClick(item)}
+                                        >
+                                            <td className="p-4 font-medium text-white">{item.vehicle}</td>
+                                            <td className="p-4 text-right text-emerald-400">₹{item.income.toLocaleString()}</td>
+                                            <td className="p-4 text-right text-red-400">₹{item.expenses.toLocaleString()}</td>
+                                            <td className={`p-4 text-right font-bold ${item.profit >= 0 ? 'text-blue-400' : 'text-red-500'}`}>
+                                                ₹{item.profit.toLocaleString()}
+                                            </td>
+                                            <td className="p-4 text-right text-slate-400">{margin}%</td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
 
             {/* Monthly Trend (if multiple months) */}
             {selectedMonth === 'all' && availableMonths.length > 1 && (
@@ -247,13 +327,15 @@ export default function DashboardPage() {
                             return acc;
                         }, []).sort((a, b) => a.month.localeCompare(b.month))}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                            <XAxis dataKey="month" stroke="#94a3b8" />
+                            <XAxis dataKey="month" stroke="#94a3b8" tickFormatter={(m) => formatMonth(m)} />
                             <YAxis stroke="#94a3b8" />
                             <Tooltip
                                 contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px' }}
                                 labelStyle={{ color: '#e2e8f0' }}
+                                labelFormatter={(label) => formatMonth(label)}
+                                formatter={(value) => [`₹${value.toLocaleString()}`, 'Profit']}
                             />
-                            <Line type="monotone" dataKey="profit" stroke="#3b82f6" strokeWidth={2} dot={{ fill: '#3b82f6', r: 4 }} />
+                            <Line type="monotone" dataKey="profit" stroke="#3b82f6" strokeWidth={3} dot={{ fill: '#3b82f6', r: 4, strokeWidth: 2, stroke: '#1e293b' }} />
                         </LineChart>
                     </ResponsiveContainer>
                 </div>
