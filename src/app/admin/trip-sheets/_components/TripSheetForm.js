@@ -34,6 +34,7 @@ export default function TripSheetForm({ initialData = {}, isEditing = false }) {
         pickup_km: initialData.pickup_km || '',
         drop_km: initialData.drop_km || '',
         garage_km_end: initialData.garage_km_end || '',
+        total_km: initialData.total_km || '',
         garage_time_start: initialData.garage_time_start || '',
         pickup_time: initialData.pickup_time || '',
         drop_time: initialData.drop_time || '',
@@ -162,9 +163,9 @@ export default function TripSheetForm({ initialData = {}, isEditing = false }) {
                         onChange={handleChange}
                     />
                     <InputGroup
-                        label="Guest Name"
+                        label="Customer Name"
                         name="guest_name"
-                        placeholder="Enter guest name"
+                        placeholder="Enter customer name"
                         value={formData.guest_name}
                         onChange={handleChange}
                     />
@@ -179,7 +180,7 @@ export default function TripSheetForm({ initialData = {}, isEditing = false }) {
                         onChange={handleChange}
                     />
                     <InputGroup
-                        label="Vehicle Reg No"
+                        label="Vehicle Number"
                         name="vehicle_reg_no"
                         placeholder="e.g. KL-XX-YYYY"
                         value={formData.vehicle_reg_no}
@@ -209,10 +210,11 @@ export default function TripSheetForm({ initialData = {}, isEditing = false }) {
                         <div className="space-y-4">
                             <h4 className="text-sm font-medium text-blue-400 uppercase tracking-wide">Kilometers</h4>
                             <div className="grid grid-cols-2 gap-4">
-                                <InputGroup label="Garage KM (Start)" name="garage_km_start" type="number" value={formData.garage_km_start} onChange={handleChange} />
                                 <InputGroup label="Pick-Up KM" name="pickup_km" type="number" value={formData.pickup_km} onChange={handleChange} />
                                 <InputGroup label="Drop KM" name="drop_km" type="number" value={formData.drop_km} onChange={handleChange} />
-                                <InputGroup label="Garage KM (End)" name="garage_km_end" type="number" value={formData.garage_km_end} onChange={handleChange} />
+                                <div className="col-span-2">
+                                    <InputGroup label="Total KM" name="total_km" type="number" value={formData.total_km} onChange={handleChange} />
+                                </div>
                             </div>
                         </div>
 
@@ -220,10 +222,8 @@ export default function TripSheetForm({ initialData = {}, isEditing = false }) {
                         <div className="space-y-4">
                             <h4 className="text-sm font-medium text-emerald-400 uppercase tracking-wide">Time</h4>
                             <div className="grid grid-cols-2 gap-4">
-                                <InputGroup label="Garage Time (Start)" name="garage_time_start" placeholder="HH:MM" value={formData.garage_time_start} onChange={handleChange} />
                                 <InputGroup label="Pick-Up Time" name="pickup_time" placeholder="HH:MM" value={formData.pickup_time} onChange={handleChange} />
                                 <InputGroup label="Drop Time" name="drop_time" placeholder="HH:MM" value={formData.drop_time} onChange={handleChange} />
-                                <InputGroup label="Garage Time (End)" name="garage_time_end" placeholder="HH:MM" value={formData.garage_time_end} onChange={handleChange} />
                             </div>
                         </div>
                     </div>
@@ -243,9 +243,8 @@ export default function TripSheetForm({ initialData = {}, isEditing = false }) {
                 </div>
 
                 {/* Section 4: Signatures */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-950/50 p-4 rounded-lg border border-slate-800/50">
+                <div className="bg-slate-950/50 p-4 rounded-lg border border-slate-800/50">
                     <InputGroup label="Driver's Name" name="driver_name" placeholder="Driver name for signature" value={formData.driver_name} onChange={handleChange} />
-                    <InputGroup label="Customer's Name" name="customer_name" placeholder="Customer name for signature" value={formData.customer_name} onChange={handleChange} />
                 </div>
             </div>
         </form>

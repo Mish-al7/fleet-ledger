@@ -95,35 +95,11 @@ export async function GET(request, { params }) {
             }
         }
 
-        // Guest Name
-        drawRow(currentY, 'Guest Name', tripSheet.guest_name);
+        // Customer Name
+        drawRow(currentY, 'Customer Name', tripSheet.guest_name);
         currentY += rowHeight;
 
-        // Vehicle Type & Reg No (Split Cell)
-        doc.rect(startX, currentY, col1Width, rowHeight).stroke();
-        doc.font('Helvetica').text('Type of Vehicle', startX + 5, currentY + 10);
-
-        // Split second column
-        const halfCol2 = col2Width / 2;
-        doc.rect(startX + col1Width, currentY, halfCol2, rowHeight).stroke(); // Type Value
-        doc.font('Helvetica-Bold').text(tripSheet.vehicle_type || '', startX + col1Width + 5, currentY + 10);
-
-        doc.rect(startX + col1Width + halfCol2, currentY, halfCol2, rowHeight).stroke(); // Reg No + Value
-        // Label "Reg. No." inside the cell?
-        // Let's format it like "Reg. No. KL-XX-YYYY" or use a smaller label box
-        // Based on PDF: Type of Vehicle [    ] Reg. No. [      ]
-        // Let's actually split it: 
-        // Label: Type of Vehicle | Value | Reg. No. | Value
-        // But my helper is rigid. Let's draw manual for this row.
-
-        // Redraw this row logic to match PDF better
-        // The PDF has: [Guest Name label] [Guest Name value] (Full width)
-        // [Type of Vehicle] [Value] [Reg. No.] [Value]
-
-        // Let's overwrite the rects for this row
-        // Clear previous drawRow attempt mentally (it's stream, so I just won't call it)
-        // Re-implementing this specific row:
-
+        // Vehicle Type & Vehicle Number row
         // Cell 1: Label "Type of Vehicle"
         doc.rect(startX, currentY, col1Width, rowHeight).stroke();
         doc.font('Helvetica').text('Type of Vehicle', startX + 5, currentY + 10);
@@ -133,10 +109,10 @@ export async function GET(request, { params }) {
         doc.rect(startX + col1Width, currentY, typeWidth, rowHeight).stroke();
         doc.font('Helvetica-Bold').text(tripSheet.vehicle_type || '', startX + col1Width + 5, currentY + 10);
 
-        // Cell 3: Label "Reg. No."
-        const regLabelWidth = 80;
+        // Cell 3: Label "Vehicle Number"
+        const regLabelWidth = 90;
         doc.rect(startX + col1Width + typeWidth, currentY, regLabelWidth, rowHeight).stroke();
-        doc.font('Helvetica').text('Reg. No.', startX + col1Width + typeWidth + 5, currentY + 10);
+        doc.font('Helvetica').text('Vehicle Number', startX + col1Width + typeWidth + 5, currentY + 10);
 
         // Cell 4: Value
         const regValueWidth = contentWidth - col1Width - typeWidth - regLabelWidth;
@@ -205,20 +181,16 @@ export async function GET(request, { params }) {
         // Let's try to match the visuals of:
         // | Garage KM | <value> | Pick-Up KM | <value> |
 
-        // Garage KM / Pick-Up KM
-        drawTwoColRow(currentY, 'Garage KM', tripSheet.garage_km_start, 'Pick-Up KM', tripSheet.pickup_km);
+        // Pick-Up KM / Pick-Up Time
+        drawTwoColRow(currentY, 'Pick-Up KM', tripSheet.pickup_km, 'Pick-Up Time', tripSheet.pickup_time);
         currentY += rowHeight;
 
-        // Garage Time / Pick-Up Time
-        drawTwoColRow(currentY, 'Garage Time', tripSheet.garage_time_start, 'Pick-Up Time', tripSheet.pickup_time);
+        // Drop KM / Drop Time
+        drawTwoColRow(currentY, 'Drop KM', tripSheet.drop_km, 'Drop Time', tripSheet.drop_time);
         currentY += rowHeight;
 
-        // Drop KM / Garage KM (End)
-        drawTwoColRow(currentY, 'Drop KM', tripSheet.drop_km, 'Garage KM', tripSheet.garage_km_end);
-        currentY += rowHeight;
-
-        // Drop Time / Garage Time (End)
-        drawTwoColRow(currentY, 'Drop Time', tripSheet.drop_time, 'Garage Time', tripSheet.garage_time_end);
+        // Total KM
+        drawRow(currentY, 'Total KM', tripSheet.total_km);
         currentY += rowHeight;
 
         // Starting Date / Closing Date
@@ -253,17 +225,10 @@ export async function GET(request, { params }) {
 
         currentY += rowHeight + 5;
 
-        // Driver and Customer Names
-        // Box 1: Driver's Name
-        // Box 2: Customer Name
-        const nameBoxWidth = contentWidth / 2;
+        // Driver Name
         const nameBoxHeight = 50;
-
-        doc.rect(startX, currentY, nameBoxWidth, nameBoxHeight).stroke();
+        doc.rect(startX, currentY, contentWidth, nameBoxHeight).stroke();
         doc.font('Helvetica').text("Driver's Name: " + (tripSheet.driver_name || ''), startX + 5, currentY + 15);
-
-        doc.rect(startX + nameBoxWidth, currentY, nameBoxWidth, nameBoxHeight).stroke();
-        doc.text("Customer Name: " + (tripSheet.customer_name || ''), startX + nameBoxWidth + 5, currentY + 15);
 
 
         // --- PDF CONTENT END ---

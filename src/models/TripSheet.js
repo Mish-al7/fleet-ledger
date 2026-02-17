@@ -46,6 +46,10 @@ const TripSheetSchema = new mongoose.Schema({
         type: Number,
         default: null,
     },
+    total_km: {
+        type: Number,
+        default: null,
+    },
     // Time Details
     garage_time_start: {
         type: String,

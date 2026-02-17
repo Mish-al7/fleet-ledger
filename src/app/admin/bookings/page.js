@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Calendar as CalendarIcon, MapPin, Clock, Car, FileText, Eye, Check, X, Filter, ChevronDown, Trash2, Edit, Plus } from 'lucide-react';
+import { Calendar as CalendarIcon, MapPin, Clock, Car, FileText, Eye, Check, X, Filter, ChevronDown, Trash2, Edit, Plus, Download } from 'lucide-react';
 import BookingEditModal from './BookingEditModal';
 import BookingCreateModal from './BookingCreateModal';
 import BookingCalendar from '@/app/components/BookingCalendar';
@@ -29,7 +29,7 @@ const StatusBadge = ({ status }) => {
 };
 
 // Booking Detail Modal
-const BookingDetailModal = ({ booking, onClose, onApprove, onReject, actionLoading }) => {
+const BookingDetailModal = ({ booking, onClose, onApprove, onReject, actionLoading, onDownloadPDF, downloadLoading }) => {
     if (!booking) return null;
 
     return (
@@ -101,8 +101,18 @@ const BookingDetailModal = ({ booking, onClose, onApprove, onReject, actionLoadi
                     </div>
 
                     {/* Created By */}
-                    <div className="text-xs text-slate-500">
-                        Created by: {booking.created_by?.name || 'Unknown'} on {new Date(booking.createdAt).toLocaleString()}
+                    <div className="flex items-center justify-between gap-4">
+                        <div className="text-xs text-slate-500">
+                            Created by: {booking.created_by?.name || 'Unknown'} on {new Date(booking.createdAt).toLocaleString()}
+                        </div>
+                        <button
+                            onClick={() => onDownloadPDF(booking)}
+                            disabled={downloadLoading}
+                            className="flex items-center gap-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg text-xs font-medium border border-slate-700 transition-all disabled:opacity-50"
+                        >
+                            <Download size={14} />
+                            {downloadLoading ? 'Generating...' : 'Download PDF'}
+                        </button>
                     </div>
 
                     {/* Action Buttons (only for pending) */}
@@ -141,6 +151,7 @@ export default function AdminBookingsPage() {
     const [editingBooking, setEditingBooking] = useState(null);
     const [isCreating, setIsCreating] = useState(false);
     const [actionLoading, setActionLoading] = useState(false);
+    const [downloadLoading, setDownloadLoading] = useState(false);
     const [viewMode, setViewMode] = useState('list'); // 'list' | 'calendar'
 
     // Filters
@@ -252,6 +263,29 @@ export default function AdminBookingsPage() {
 
         setEditingBooking(null);
         fetchBookings();
+    }
+
+    async function handleDownloadPDF(booking) {
+        setDownloadLoading(true);
+        try {
+            const res = await fetch(`/api/bookings/${booking._id}/pdf`);
+            if (!res.ok) throw new Error('Failed to generate PDF');
+
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Booking_${booking.booking_no}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        } catch (err) {
+            console.error(err);
+            alert('Error downloading PDF: ' + err.message);
+        } finally {
+            setDownloadLoading(false);
+        }
     }
 
     return (
@@ -472,6 +506,8 @@ export default function AdminBookingsPage() {
                     onApprove={(id) => handleStatusChange(id, 'approved')}
                     onReject={(id) => handleStatusChange(id, 'rejected')}
                     actionLoading={actionLoading}
+                    onDownloadPDF={handleDownloadPDF}
+                    downloadLoading={downloadLoading}
                 />
             )}
 
