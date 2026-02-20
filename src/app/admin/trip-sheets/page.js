@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Plus, Search, FileText, Download, Eye } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { formatDate } from '@/lib/dateUtils';
 
 export default function TripSheetsPage() {
     const [tripSheets, setTripSheets] = useState([]);
@@ -101,7 +102,7 @@ export default function TripSheetsPage() {
                         />
                     </div>
                     <div>
-                        <label className="block text-xs text-slate-400 mb-1">Vehicle Reg No</label>
+                        <label className="block text-xs text-slate-400 mb-1">Vehicle Number</label>
                         <input
                             type="text"
                             name="vehicleReg"
@@ -112,7 +113,7 @@ export default function TripSheetsPage() {
                         />
                     </div>
                     <div>
-                        <label className="block text-xs text-slate-400 mb-1">Guest Name</label>
+                        <label className="block text-xs text-slate-400 mb-1">Customer Name</label>
                         <input
                             type="text"
                             name="guestName"
@@ -140,7 +141,7 @@ export default function TripSheetsPage() {
                             <tr className="bg-slate-950 border-b border-slate-800">
                                 <th className="text-left px-6 py-4 text-xs font-medium text-slate-400 uppercase tracking-wider">No</th>
                                 <th className="text-left px-6 py-4 text-xs font-medium text-slate-400 uppercase tracking-wider">Date</th>
-                                <th className="text-left px-6 py-4 text-xs font-medium text-slate-400 uppercase tracking-wider">Guest</th>
+                                <th className="text-left px-6 py-4 text-xs font-medium text-slate-400 uppercase tracking-wider">Customer</th>
                                 <th className="text-left px-6 py-4 text-xs font-medium text-slate-400 uppercase tracking-wider">Vehicle</th>
                                 <th className="text-left px-6 py-4 text-xs font-medium text-slate-400 uppercase tracking-wider">Driver</th>
                                 <th className="text-right px-6 py-4 text-xs font-medium text-slate-400 uppercase tracking-wider">Bill Amount</th>
@@ -167,7 +168,7 @@ export default function TripSheetsPage() {
                                             {sheet.trip_sheet_no}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-400">
-                                            {new Date(sheet.trip_sheet_date).toLocaleDateString()}
+                                            {formatDate(sheet.trip_sheet_date)}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
                                             {sheet.guest_name || '-'}

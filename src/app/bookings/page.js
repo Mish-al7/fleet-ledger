@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Navbar from '@/app/components/Navbar';
 import BookingCalendar from '@/app/components/BookingCalendar';
 import { Calendar as CalendarIcon, MapPin, Clock, Car, FileText, Eye } from 'lucide-react';
+import { formatDate } from '@/lib/dateUtils';
 
 // Status Badge Component
 const StatusBadge = ({ status }) => {
@@ -32,7 +33,7 @@ const BookingCard = ({ booking, onViewDetails }) => (
         <div className="flex items-start justify-between">
             <div>
                 <div className="text-sm font-medium text-white">{booking.booking_no}</div>
-                <div className="text-xs text-slate-500">{new Date(booking.booking_date).toLocaleDateString()}</div>
+                <div className="text-xs text-slate-500">{formatDate(booking.booking_date)}</div>
             </div>
             <StatusBadge status={booking.status} />
         </div>
@@ -49,7 +50,7 @@ const BookingCard = ({ booking, onViewDetails }) => (
             <div className="flex items-center gap-2 text-slate-400">
                 <CalendarIcon size={14} />
                 <span>
-                    {new Date(booking.journey_start_date).toLocaleDateString()} - {new Date(booking.journey_return_date).toLocaleDateString()}
+                    {formatDate(booking.journey_start_date)} - {formatDate(booking.journey_return_date)}
                 </span>
             </div>
             <div className="flex items-center gap-2 text-slate-400">
@@ -122,8 +123,8 @@ const BookingDetailModal = ({ booking, onClose }) => {
                     <div className="border-t border-slate-800 pt-4">
                         <h3 className="text-sm font-medium text-amber-400 mb-2">Schedule</h3>
                         <div className="grid grid-cols-2 gap-2 text-sm">
-                            <div><span className="text-slate-500">Start:</span> <span className="text-white">{new Date(booking.journey_start_date).toLocaleDateString()}</span></div>
-                            <div><span className="text-slate-500">Return:</span> <span className="text-white">{new Date(booking.journey_return_date).toLocaleDateString()}</span></div>
+                            <div><span className="text-slate-500">Start:</span> <span className="text-white">{formatDate(booking.journey_start_date)}</span></div>
+                            <div><span className="text-slate-500">Return:</span> <span className="text-white">{formatDate(booking.journey_return_date)}</span></div>
                             <div><span className="text-slate-500">Time:</span> <span className="text-white">{booking.trip_start_time} - {booking.trip_end_time}</span></div>
                             <div><span className="text-slate-500">Days:</span> <span className="text-white">{booking.total_days}</span></div>
                         </div>

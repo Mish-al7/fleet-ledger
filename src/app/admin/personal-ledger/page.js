@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { PlusCircle, Calendar, Filter, X, Edit2, Trash2 } from 'lucide-react';
+import { formatDate } from '@/lib/dateUtils';
 
 export default function PersonalLedgerPage() {
     const [entries, setEntries] = useState([]);
@@ -14,6 +15,8 @@ export default function PersonalLedgerPage() {
     // Filter state
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
+    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+    const [selectedMonth, setSelectedMonth] = useState(''); // '' means all
     const [isFiltered, setIsFiltered] = useState(false);
 
     // Form state
@@ -64,10 +67,43 @@ export default function PersonalLedgerPage() {
         }
     };
 
+    // Filter Logic matching Ledger
+    const updateDateAndFetch = (year, month) => {
+        let start = '';
+        let end = '';
+
+        if (month) {
+            start = `${year}-${month.padStart(2, '0')}-01`;
+            const lastDay = new Date(year, parseInt(month), 0).getDate();
+            end = `${year}-${month.padStart(2, '0')}-${lastDay}`;
+        } else {
+            start = `${year}-01-01`;
+            end = `${year}-12-31`;
+        }
+
+        setStartDate(start);
+        setEndDate(end);
+        setIsFiltered(true);
+        fetchEntries({ startDate: start, endDate: end });
+    };
+
+    const handleYearChange = (year) => {
+        const yearInt = parseInt(year);
+        setSelectedYear(yearInt);
+        updateDateAndFetch(yearInt, selectedMonth);
+    };
+
+    const handleMonthChange = (month) => {
+        setSelectedMonth(month);
+        updateDateAndFetch(selectedYear, month);
+    };
+
     // Clear filter
     const handleClearFilter = () => {
         setStartDate('');
         setEndDate('');
+        setSelectedYear(new Date().getFullYear());
+        setSelectedMonth('');
         setIsFiltered(false);
         fetchEntries();
     };
@@ -211,43 +247,77 @@ export default function PersonalLedgerPage() {
                 </button>
 
                 {/* Filter Section */}
-                <div className="flex flex-col md:flex-row gap-2 flex-1">
-                    <div className="flex items-center gap-2 flex-1">
-                        <Calendar size={16} className="text-slate-400" />
+                <div className="flex flex-wrap items-center gap-3 bg-slate-900/50 p-2 rounded-xl border border-slate-800 flex-1">
+                    {/* Year Dropdown */}
+                    <select
+                        value={selectedYear}
+                        onChange={(e) => handleYearChange(e.target.value)}
+                        className="bg-slate-950 text-white text-sm border border-slate-700 rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500"
+                    >
+                        {[2024, 2025, 2026, 2027].map(y => (
+                            <option key={y} value={y}>{y}</option>
+                        ))}
+                    </select>
+
+                    {/* Month Dropdown */}
+                    <select
+                        value={selectedMonth}
+                        onChange={(e) => handleMonthChange(e.target.value)}
+                        className="bg-slate-950 text-white text-sm border border-slate-700 rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500"
+                    >
+                        <option value="">All Months</option>
+                        {Array.from({ length: 12 }, (_, i) => {
+                            const m = (i + 1).toString().padStart(2, '0');
+                            const name = new Date(2000, i).toLocaleString('default', { month: 'long' });
+                            return <option key={m} value={m}>{name}</option>;
+                        })}
+                    </select>
+
+                    <div className="hidden md:flex items-center text-slate-700 px-1">|</div>
+
+                    {/* Custom Date Range */}
+                    <div className="flex items-center gap-2 text-xs text-slate-500">
                         <input
                             type="date"
                             value={startDate}
-                            onChange={(e) => setStartDate(e.target.value)}
-                            className="flex-1 px-3 py-1.5 text-sm bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="Start Date"
+                            onChange={(e) => {
+                                setStartDate(e.target.value);
+                                setSelectedMonth('');
+                                setIsFiltered(true);
+                            }}
+                            className="bg-slate-950 text-white border border-slate-700 rounded-lg px-2 py-1 focus:outline-none"
                         />
-                    </div>
-                    <div className="flex items-center gap-2 flex-1">
-                        <Calendar size={16} className="text-slate-400" />
+                        <span>to</span>
                         <input
                             type="date"
                             value={endDate}
-                            onChange={(e) => setEndDate(e.target.value)}
-                            className="flex-1 px-3 py-1.5 text-sm bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="End Date"
+                            onChange={(e) => {
+                                setEndDate(e.target.value);
+                                setSelectedMonth('');
+                                setIsFiltered(true);
+                            }}
+                            className="bg-slate-950 text-white border border-slate-700 rounded-lg px-2 py-1 focus:outline-none"
                         />
                     </div>
-                    <button
-                        onClick={handleApplyFilter}
-                        className="px-4 py-1.5 text-sm bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-medium transition-all flex items-center justify-center gap-2"
-                    >
-                        <Filter size={16} />
-                        Apply Filter
-                    </button>
-                    {isFiltered && (
+
+                    <div className="flex gap-2 ml-auto">
                         <button
-                            onClick={handleClearFilter}
-                            className="px-4 py-1.5 text-sm bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-all flex items-center justify-center gap-2"
+                            onClick={handleApplyFilter}
+                            className="px-3 py-1.5 text-xs bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-medium transition-all flex items-center gap-2 border border-slate-700"
                         >
-                            <X size={16} />
-                            Clear
+                            <Filter size={14} />
+                            Apply
                         </button>
-                    )}
+                        {isFiltered && (
+                            <button
+                                onClick={handleClearFilter}
+                                className="px-3 py-1.5 text-xs bg-red-600/20 hover:bg-red-600/30 text-red-400 rounded-lg font-medium transition-all flex items-center gap-2 border border-red-500/30"
+                            >
+                                <X size={14} />
+                                Clear
+                            </button>
+                        )}
+                    </div>
                 </div>
             </div>
 
@@ -309,7 +379,7 @@ export default function PersonalLedgerPage() {
                                     .map((entry) => (
                                         <tr key={entry._id} className="hover:bg-slate-800/50 transition-colors">
                                             <td className="px-6 py-4 text-sm text-slate-300">
-                                                {new Date(entry.date).toLocaleDateString('en-GB')}
+                                                {formatDate(entry.date)}
                                             </td>
                                             <td className="px-6 py-4 text-sm text-white">
                                                 {entry.description}

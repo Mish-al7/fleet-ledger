@@ -41,7 +41,10 @@ export default function LedgerHubPage() {
                                 <div className="p-2 bg-slate-800 rounded-lg text-slate-400 group-hover:text-blue-400 transition-colors">
                                     <Truck size={24} />
                                 </div>
-                                <span className="font-bold text-lg text-white">{v.vehicle_no}</span>
+                                <div>
+                                    <span className="font-bold text-lg text-white block">{v.vehicle_no}</span>
+                                    {v.nickname && <span className="text-sm text-slate-400 block">{v.nickname}</span>}
+                                </div>
                             </div>
                             <ChevronRight className="text-slate-600 group-hover:text-blue-400 transition-colors" />
                         </div>

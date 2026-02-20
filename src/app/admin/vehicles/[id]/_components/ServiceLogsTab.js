@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Plus, Pencil, Trash2, X, Check, Wrench } from 'lucide-react';
+import { formatDate } from '@/lib/dateUtils';
 
 export default function ServiceLogsTab({ vehicleId }) {
     const [logs, setLogs] = useState([]);
@@ -190,13 +191,13 @@ export default function ServiceLogsTab({ vehicleId }) {
                                 logs.map(log => (
                                     <tr key={log._id} className="hover:bg-slate-800/50 transition-colors group">
                                         <td className="px-6 py-4 text-white">
-                                            {new Date(log.service_date).toLocaleDateString()}
+                                            {formatDate(log.service_date)}
                                             {log.follow_up_required && (
                                                 <div className="mt-1 flex items-center gap-2">
                                                     <span className={`px-2 py-0.5 rounded-full text-[10px] border ${log.follow_up_completed
                                                         ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
                                                         : 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'}`}>
-                                                        {log.follow_up_completed ? 'Service Done' : `Follow-up: ${log.next_service_date ? new Date(log.next_service_date).toLocaleDateString() : 'N/A'}`}
+                                                        {log.follow_up_completed ? 'Service Done' : `Follow-up: ${log.next_service_date ? formatDate(log.next_service_date) : 'N/A'}`}
                                                     </span>
                                                     <button
                                                         type="button"
