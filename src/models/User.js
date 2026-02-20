@@ -21,13 +21,15 @@ const UserSchema = new mongoose.Schema({
     role: {
         type: String,
         required: true,
-        enum: ['admin', 'driver'],
+        enum: ['admin', 'driver', 'super_admin'],
         default: 'driver',
     },
     company_id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Company',
-        required: [true, 'Company is required'],
+        required: function () {
+            return this.role !== 'super_admin';
+        },
         index: true,
     },
     assignedVehicles: [{

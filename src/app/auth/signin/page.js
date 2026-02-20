@@ -35,7 +35,8 @@ function SignInContent() {
                 const session = await response.json();
 
                 // Redirect based on role
-                const redirectUrl = session?.user?.role === 'driver' ? '/trips/new' : '/admin/summary';
+                const role = session?.user?.role;
+                const redirectUrl = role === 'super_admin' ? '/super-admin/companies' : role === 'driver' ? '/trips/new' : '/admin/summary';
                 router.push(redirectUrl);
                 router.refresh();
             }

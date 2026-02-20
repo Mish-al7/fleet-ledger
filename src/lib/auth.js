@@ -31,7 +31,7 @@ export const authOptions = {
                     name: user.name,
                     email: user.email,
                     role: user.role,
-                    company_id: user.company_id.toString(),
+                    company_id: user.company_id ? user.company_id.toString() : null,
                 };
             },
         }),
