@@ -15,8 +15,9 @@ export async function GET(req, { params }) {
         await dbConnect();
 
         const { id } = await params;
+        const company_id = session.user.company_id;
 
-        const booking = await Booking.findById(id)
+        const booking = await Booking.findOne({ _id: id, company_id })
             .populate('vehicle_id', 'vehicle_no')
             .populate('created_by', 'name email')
             .lean();
@@ -49,9 +50,13 @@ export async function PATCH(req, { params }) {
 
         const { id } = await params;
         const body = await req.json();
+        const company_id = session.user.company_id;
 
-        // Check if booking exists
-        const existingBooking = await Booking.findById(id);
+        // Strip any client-sent company_id
+        delete body.company_id;
+
+        // Check if booking exists and belongs to company
+        const existingBooking = await Booking.findOne({ _id: id, company_id });
         if (!existingBooking) {
             return NextResponse.json({ error: 'Booking not found' }, { status: 404 });
         }
@@ -64,7 +69,7 @@ export async function PATCH(req, { params }) {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
-        // If dates or vehicle changed, check availability
+        // If dates or vehicle changed, check availability (scoped to company)
         if (body.vehicle_id || body.journey_start_date || body.journey_return_date || body.trip_start_time || body.trip_end_time) {
             // Use existing values if not provided in body
             const vehicleId = body.vehicle_id || existingBooking.vehicle_id;
@@ -79,7 +84,8 @@ export async function PATCH(req, { params }) {
                 endDate,
                 startTime,
                 endTime,
-                id // Exclude current booking
+                id, // Exclude current booking
+                company_id
             );
 
             if (!availability.available) {
@@ -91,8 +97,8 @@ export async function PATCH(req, { params }) {
         }
 
         // Update booking
-        const updatedBooking = await Booking.findByIdAndUpdate(
-            id,
+        const updatedBooking = await Booking.findOneAndUpdate(
+            { _id: id, company_id },
             { ...body },
             { new: true, runValidators: true }
         ).populate('vehicle_id', 'vehicle_no').populate('created_by', 'name email');
@@ -116,8 +122,9 @@ export async function DELETE(req, { params }) {
         await dbConnect();
 
         const { id } = await params;
+        const company_id = session.user.company_id;
 
-        const booking = await Booking.findById(id);
+        const booking = await Booking.findOne({ _id: id, company_id });
         if (!booking) {
             return NextResponse.json({ error: 'Booking not found' }, { status: 404 });
         }
@@ -130,7 +137,7 @@ export async function DELETE(req, { params }) {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
-        await Booking.findByIdAndDelete(id);
+        await Booking.findOneAndDelete({ _id: id, company_id });
 
         return NextResponse.json({ success: true, message: 'Booking deleted successfully' });
     } catch (error) {

@@ -16,6 +16,7 @@ export async function POST(req) {
 
         const body = await req.json();
         const { vehicle_id, journey_start_date, journey_return_date, trip_start_time, trip_end_time, exclude_booking_id } = body;
+        const company_id = session.user.company_id;
 
         // Validate required fields
         if (!vehicle_id || !journey_start_date || !journey_return_date || !trip_start_time || !trip_end_time) {
@@ -30,7 +31,8 @@ export async function POST(req) {
             journey_return_date,
             trip_start_time,
             trip_end_time,
-            exclude_booking_id || null
+            exclude_booking_id || null,
+            company_id
         );
 
         return NextResponse.json({

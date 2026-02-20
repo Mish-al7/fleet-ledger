@@ -21,13 +21,19 @@ export async function POST(req) {
 
         const body = await req.json();
 
+        // Strip any client-sent company_id
+        delete body.company_id;
+
         // Inject driver_id from session if not provided (safety)
         if (!body.driver_id) {
             body.driver_id = session.user.id;
         }
 
-        // Create Trip
-        const trip = await Trip.create(body);
+        // Create Trip with company_id from JWT
+        const trip = await Trip.create({
+            ...body,
+            company_id: session.user.company_id,
+        });
 
         return NextResponse.json({ success: true, data: trip }, { status: 201 });
     } catch (error) {

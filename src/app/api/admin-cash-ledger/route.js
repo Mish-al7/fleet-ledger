@@ -16,12 +16,13 @@ export async function GET(req) {
 
         await dbConnect();
 
+        const company_id = session.user.company_id;
         const { searchParams } = new URL(req.url);
         const startDate = searchParams.get('startDate');
         const endDate = searchParams.get('endDate');
 
-        // Build query with optional date filtering
-        let query = {};
+        // Build query - always scoped to company
+        let query = { company_id };
         if (startDate || endDate) {
             query.date = {};
             if (startDate) {
@@ -74,6 +75,7 @@ export async function POST(req) {
 
         const body = await req.json();
         const { date, description, type, amount } = body;
+        const company_id = session.user.company_id;
 
         // Validation
         if (!date || !description || !type || amount === undefined) {
@@ -97,8 +99,8 @@ export async function POST(req) {
             );
         }
 
-        // Fetch the last entry by date to get the last balance
-        const lastEntry = await AdminCashLedger.findOne()
+        // Fetch the last entry by date for this company to get the last balance
+        const lastEntry = await AdminCashLedger.findOne({ company_id })
             .sort({ date: -1, createdAt: -1 })
             .lean();
 
@@ -119,6 +121,7 @@ export async function POST(req) {
             type,
             amount: parseFloat(amount),
             running_balance: runningBalance,
+            company_id,
             createdBy: session.user.id
         });
 

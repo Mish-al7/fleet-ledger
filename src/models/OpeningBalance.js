@@ -15,12 +15,18 @@ const OpeningBalanceSchema = new mongoose.Schema({
         required: true,
         default: 0,
     },
+    company_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Company',
+        required: [true, 'Company is required'],
+        index: true,
+    },
 }, {
     timestamps: true,
 });
 
-// One opening balance per vehicle per year
-OpeningBalanceSchema.index({ vehicle_id: 1, year: 1 }, { unique: true });
+// One opening balance per vehicle per year per company
+OpeningBalanceSchema.index({ vehicle_id: 1, year: 1, company_id: 1 }, { unique: true });
 
 // Help with hot-reloading schema changes in development
 if (mongoose.models.OpeningBalance) {

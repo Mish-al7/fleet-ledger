@@ -4,7 +4,6 @@ const TripSheetSchema = new mongoose.Schema({
     trip_sheet_no: {
         type: String,
         required: true,
-        unique: true,
     },
     trip_sheet_date: {
         type: Date,
@@ -91,8 +90,17 @@ const TripSheetSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
     },
+    company_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Company',
+        required: [true, 'Company is required'],
+        index: true,
+    },
 }, {
     timestamps: true,
 });
+
+// Trip sheet number unique per company
+TripSheetSchema.index({ trip_sheet_no: 1, company_id: 1 }, { unique: true });
 
 export default mongoose.models.TripSheet || mongoose.model('TripSheet', TripSheetSchema);

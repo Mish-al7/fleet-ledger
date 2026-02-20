@@ -5,7 +5,7 @@ import dbConnect from '@/lib/dbConnect';
 import Booking from '@/models/Booking';
 import Vehicle from '@/models/Vehicle';
 
-// GET - List bookings (driver: own only, admin: all)
+// GET - List bookings (driver: own only, admin: all within company)
 export async function GET(req) {
     try {
         const session = await getServerSession(authOptions);
@@ -15,14 +15,15 @@ export async function GET(req) {
 
         await dbConnect();
 
+        const company_id = session.user.company_id;
         const { searchParams } = new URL(req.url);
         const status = searchParams.get('status');
         const vehicleId = searchParams.get('vehicle_id');
         const startDate = searchParams.get('start_date');
         const endDate = searchParams.get('end_date');
 
-        // Build query
-        const query = {};
+        // Build query - always scoped to company
+        const query = { company_id };
 
         // Drivers can only see their own bookings
         if (session.user.role === 'driver') {
@@ -70,6 +71,10 @@ export async function POST(req) {
         await dbConnect();
 
         const body = await req.json();
+        const company_id = session.user.company_id;
+
+        // Strip any client-sent company_id
+        delete body.company_id;
 
         // Validate required fields
         const requiredFields = ['customer_name', 'customer_phone', 'pickup_location', 'trip_destination',
@@ -81,19 +86,21 @@ export async function POST(req) {
             }
         }
 
-        // Get vehicle details
-        const vehicle = await Vehicle.findById(body.vehicle_id);
+        // Get vehicle details (scoped to company)
+        const vehicle = await Vehicle.findOne({ _id: body.vehicle_id, company_id });
         if (!vehicle) {
             return NextResponse.json({ error: 'Vehicle not found' }, { status: 404 });
         }
 
-        // Check vehicle availability (overlap detection)
+        // Check vehicle availability (scoped to company)
         const availability = await Booking.checkVehicleAvailability(
             body.vehicle_id,
             body.journey_start_date,
             body.journey_return_date,
             body.trip_start_time,
-            body.trip_end_time
+            body.trip_end_time,
+            null,
+            company_id
         );
 
         if (!availability.available) {
@@ -103,8 +110,8 @@ export async function POST(req) {
             }, { status: 409 });
         }
 
-        // Generate booking number
-        const booking_no = await Booking.generateBookingNo();
+        // Generate booking number (scoped to company)
+        const booking_no = await Booking.generateBookingNo(company_id);
 
         // Create booking
         const booking = await Booking.create({
@@ -112,6 +119,7 @@ export async function POST(req) {
             booking_no,
             booking_date: new Date(),
             created_by: session.user.id,
+            company_id,
             vehicle_no: vehicle.vehicle_no,
             status: 'pending',
         });

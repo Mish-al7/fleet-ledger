@@ -20,6 +20,12 @@ const TripSchema = new mongoose.Schema({
         ref: 'User',
         required: true,
     },
+    company_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Company',
+        required: [true, 'Company is required'],
+        index: true,
+    },
     trip_route: {
         type: String,
         required: [true, 'Please provide the route'],

@@ -5,6 +5,7 @@ import dbConnect from '@/lib/dbConnect';
 import User from '@/models/User';
 import bcrypt from 'bcryptjs';
 
+// GET: List all users in this company
 export async function GET(req) {
     try {
         const session = await getServerSession(authOptions);
@@ -13,15 +14,20 @@ export async function GET(req) {
         }
 
         await dbConnect();
+        const company_id = session.user.company_id;
 
-        // Get all users, exclude password field
-        const users = await User.find({}).select('-password').sort({ name: 1 });
+        const users = await User.find({ company_id })
+            .select('-password')
+            .populate('assignedVehicles', 'vehicle_no')
+            .lean();
+
         return NextResponse.json({ success: true, data: users });
     } catch (error) {
-        return NextResponse.json({ error: error.message }, { status: 400 });
+        return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
 
+// POST: Create user within this company
 export async function POST(req) {
     try {
         const session = await getServerSession(authOptions);
@@ -31,13 +37,34 @@ export async function POST(req) {
 
         await dbConnect();
         const body = await req.json();
+        const company_id = session.user.company_id;
+
+        // Strip any client-sent company_id
+        delete body.company_id;
+
+        const { name, email, password, role, assignedVehicles } = body;
+
+        // Validate
+        if (!name || !email || !password) {
+            return NextResponse.json({ error: 'Name, email, and password are required' }, { status: 400 });
+        }
+
+        // Check duplicate email within company
+        const existing = await User.findOne({ email, company_id });
+        if (existing) {
+            return NextResponse.json({ error: 'User with this email already exists' }, { status: 400 });
+        }
 
         // Hash password
-        const hashedPassword = await bcrypt.hash(body.password, 10);
+        const hashedPassword = await bcrypt.hash(password, 12);
 
         const user = await User.create({
-            ...body,
-            password: hashedPassword
+            name,
+            email,
+            password: hashedPassword,
+            role: role || 'driver',
+            assignedVehicles: assignedVehicles || [],
+            company_id,
         });
 
         // Return user without password
@@ -46,6 +73,6 @@ export async function POST(req) {
 
         return NextResponse.json({ success: true, data: userObj }, { status: 201 });
     } catch (error) {
-        return NextResponse.json({ error: error.message }, { status: 400 });
+        return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }

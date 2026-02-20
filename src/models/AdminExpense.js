@@ -31,6 +31,12 @@ const AdminExpenseSchema = new mongoose.Schema({
         ref: 'Vehicle',
         default: null
     },
+    company_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Company',
+        required: [true, 'Company is required'],
+        index: true,
+    },
     status: {
         type: String,
         enum: ['Active', 'Paused', 'Completed'],

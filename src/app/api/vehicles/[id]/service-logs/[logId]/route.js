@@ -14,23 +14,26 @@ export async function PUT(request, { params }) {
         await dbConnect();
         const { logId } = await params;
         const data = await request.json();
+        const company_id = session.user.company_id;
 
-        // Prevent changing vehicle_id or vehicle_no mostly, but let's allow flexibility if needed.
-        // Actually user spec says: "Vehicle association cannot be changed after creation"
+        // Strip any client-sent company_id
+        delete data.company_id;
+
+        // Prevent changing vehicle_id or vehicle_no
         delete data.vehicle_id;
         delete data.vehicle_no;
 
         // Calculate total cost if parts or labour are provided
-        // We need to be careful if only one is provided. Ideally fetch existing, but usually form sends all.
-        // For simplicity, let's assume we update what's sent.
         if (data.parts_cost !== undefined || data.labour_cost !== undefined) {
             data.total_cost = (parseFloat(data.parts_cost) || 0) + (parseFloat(data.labour_cost) || 0);
         }
 
-        const log = await VehicleServiceLog.findByIdAndUpdate(logId, data, {
-            new: true,
-            runValidators: true,
-        });
+        // Verify ownership and update
+        const log = await VehicleServiceLog.findOneAndUpdate(
+            { _id: logId, company_id },
+            data,
+            { new: true, runValidators: true }
+        );
 
         if (!log) {
             return NextResponse.json({ error: 'Service Log not found' }, { status: 404 });
@@ -52,8 +55,9 @@ export async function DELETE(request, { params }) {
 
         await dbConnect();
         const { logId } = await params;
+        const company_id = session.user.company_id;
 
-        const log = await VehicleServiceLog.findByIdAndDelete(logId);
+        const log = await VehicleServiceLog.findOneAndDelete({ _id: logId, company_id });
 
         if (!log) {
             return NextResponse.json({ error: 'Service Log not found' }, { status: 404 });

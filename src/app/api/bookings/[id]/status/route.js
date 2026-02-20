@@ -22,13 +22,14 @@ export async function PATCH(req, { params }) {
         const { id } = await params;
         const body = await req.json();
         const { status } = body;
+        const company_id = session.user.company_id;
 
         // Validate status
         if (!status || !['approved', 'rejected'].includes(status)) {
             return NextResponse.json({ error: 'Invalid status. Must be "approved" or "rejected"' }, { status: 400 });
         }
 
-        const booking = await Booking.findById(id);
+        const booking = await Booking.findOne({ _id: id, company_id });
         if (!booking) {
             return NextResponse.json({ error: 'Booking not found' }, { status: 404 });
         }
@@ -40,7 +41,7 @@ export async function PATCH(req, { params }) {
             }, { status: 400 });
         }
 
-        // If approving, re-check availability to prevent race conditions
+        // If approving, re-check availability to prevent race conditions (scoped to company)
         if (status === 'approved') {
             const availability = await Booking.checkVehicleAvailability(
                 booking.vehicle_id,
@@ -48,7 +49,8 @@ export async function PATCH(req, { params }) {
                 booking.journey_return_date,
                 booking.trip_start_time,
                 booking.trip_end_time,
-                booking._id // Exclude current booking from check
+                booking._id, // Exclude current booking from check
+                company_id
             );
 
             if (!availability.available) {

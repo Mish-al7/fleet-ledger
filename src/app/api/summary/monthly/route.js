@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import dbConnect from '@/lib/dbConnect';
 import Trip from '@/models/Trip';
+import mongoose from 'mongoose';
 
 export async function GET(req) {
     try {
@@ -13,62 +14,71 @@ export async function GET(req) {
 
         await dbConnect();
 
-        // Get month filter from query params
+        const company_id = session.user.company_id;
         const { searchParams } = new URL(req.url);
-        const monthFilter = searchParams.get('month');
+        const year = parseInt(searchParams.get('year')) || new Date().getFullYear();
+        const selectedMonth = searchParams.get('month'); // e.g. "2026-01"
 
-        // Build match stage if month filter provided
-        const matchStage = monthFilter ? { $match: { month: monthFilter } } : null;
+        // Build match filter
+        const matchFilter = {
+            company_id: new mongoose.Types.ObjectId(company_id),
+        };
 
-        // Aggregation Pipeline
-        const pipeline = [
-            ...(matchStage ? [matchStage] : []),
+        if (selectedMonth && selectedMonth !== 'all') {
+            matchFilter.month = selectedMonth;
+        } else {
+            matchFilter.month = { $regex: `^${year}-` };
+        }
+
+        const summary = await Trip.aggregate([
+            { $match: matchFilter },
             {
                 $group: {
                     _id: {
-                        month: "$month",
-                        vehicle_id: "$vehicle_id"
+                        month: '$month',
+                        vehicle_id: '$vehicle_id',
                     },
-                    total_income: { $sum: "$income" },
-                    total_expenses: { $sum: "$total_expenses" },
-                    trip_count: { $sum: 1 }
-                }
+                    total_income: { $sum: '$income' },
+                    total_expenses: { $sum: '$total_expenses' },
+                    tripCount: { $sum: 1 },
+                },
             },
             {
                 $lookup: {
-                    from: "vehicles",
-                    localField: "_id.vehicle_id",
-                    foreignField: "_id",
-                    as: "vehicle"
-                }
+                    from: 'vehicles',
+                    localField: '_id.vehicle_id',
+                    foreignField: '_id',
+                    as: 'vehicle',
+                },
             },
-            { $unwind: "$vehicle" },
+            { $unwind: '$vehicle' },
             {
                 $project: {
                     _id: 0,
-                    month: "$_id.month",
-                    vehicle_id: "$_id.vehicle_id",
-                    vehicle_no: "$vehicle.vehicle_no",
+                    month: '$_id.month',
+                    vehicle_id: '$_id.vehicle_id',
+                    vehicle_no: '$vehicle.vehicle_no',
                     total_income: 1,
                     total_expenses: 1,
-                    trip_count: 1,
-                    profit: { $subtract: ["$total_income", "$total_expenses"] }
-                }
+                    tripCount: 1,
+                    profit: { $subtract: ['$total_income', '$total_expenses'] },
+                },
             },
-            { $sort: { month: -1, vehicle_no: 1 } }
-        ];
+            {
+                $sort: { month: 1, vehicle_no: 1 },
+            },
+        ]);
 
-        const summary = await Trip.aggregate(pipeline);
-
-        // Also fetch all distinct months available for filtering
-        const allMonths = await Trip.distinct('month');
-        const availableMonths = allMonths.sort().reverse();
-
-        return NextResponse.json({
-            success: true,
-            data: summary,
-            availableMonths
+        // Get available months for filter pills
+        const availableMonths = await Trip.distinct('month', {
+            company_id: new mongoose.Types.ObjectId(company_id),
+            month: { $regex: `^${year}-` },
         });
+
+        // Sort months descending (most recent first)
+        availableMonths.sort((a, b) => b.localeCompare(a));
+
+        return NextResponse.json({ success: true, data: summary, availableMonths });
     } catch (error) {
         return NextResponse.json({ error: error.message }, { status: 400 });
     }

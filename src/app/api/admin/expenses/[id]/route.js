@@ -13,15 +13,19 @@ export async function PUT(req, { params }) {
 
         const { id } = await params;
         const body = await req.json();
+        const company_id = session.user.company_id;
+
+        // Strip any client-sent company_id
+        delete body.company_id;
 
         await dbConnect();
 
-        // Update logic
-        // Prevent editing if it's a completed One-time expense that is already "posted"?
-        // User spec: "No edit from ledger screen (edit only via Expenses module)"
-        // So allow edit here.
-
-        const expense = await AdminExpense.findByIdAndUpdate(id, body, { new: true });
+        // Verify ownership and update
+        const expense = await AdminExpense.findOneAndUpdate(
+            { _id: id, company_id },
+            body,
+            { new: true }
+        );
 
         if (!expense) {
             return NextResponse.json({ error: 'Expense not found' }, { status: 404 });
@@ -41,9 +45,10 @@ export async function DELETE(req, { params }) {
         }
 
         const { id } = await params;
+        const company_id = session.user.company_id;
         await dbConnect();
 
-        const expense = await AdminExpense.findByIdAndDelete(id);
+        const expense = await AdminExpense.findOneAndDelete({ _id: id, company_id });
 
         if (!expense) {
             return NextResponse.json({ error: 'Expense not found' }, { status: 404 });

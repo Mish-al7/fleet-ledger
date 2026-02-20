@@ -14,8 +14,11 @@ export async function GET(req) {
 
         await dbConnect();
 
-        // Find all Active Recurring Expenses
+        const company_id = session.user.company_id;
+
+        // Find all Active Recurring Expenses for this company
         const recurringExpenses = await AdminExpense.find({
+            company_id,
             status: 'Active',
             frequency: { $ne: 'One-time' }
         }).populate('vehicle_id', 'vehicle_no');
@@ -25,6 +28,7 @@ export async function GET(req) {
         const masterIds = recurringExpenses.map(e => e._id);
         const allExistingInstances = await AdminExpense.find({
             recurring_master_id: { $in: masterIds },
+            company_id,
             status: 'Completed'
         }).select('start_date recurring_master_id').lean();
 

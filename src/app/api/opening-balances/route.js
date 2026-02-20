@@ -11,9 +11,11 @@ export async function GET(req) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
+        const company_id = session.user.company_id;
         const { searchParams } = new URL(req.url);
         const year = searchParams.get('year');
-        const filter = year ? { year: parseInt(year) } : {};
+        const filter = { company_id };
+        if (year) filter.year = parseInt(year);
 
         await dbConnect();
         const balances = await OpeningBalance.find(filter).populate('vehicle_id', 'vehicle_no');
@@ -32,14 +34,15 @@ export async function POST(req) {
 
         await dbConnect();
         const body = await req.json();
+        const company_id = session.user.company_id;
 
         if (!body.year) {
             return NextResponse.json({ error: 'Year is required' }, { status: 400 });
         }
 
-        // Upsert logic: if exists for vehicle + year, update it.
+        // Upsert logic: if exists for vehicle + year + company, update it.
         const balance = await OpeningBalance.findOneAndUpdate(
-            { vehicle_id: body.vehicle_id, year: body.year },
+            { vehicle_id: body.vehicle_id, year: body.year, company_id },
             { opening_balance: body.opening_balance },
             { new: true, upsert: true, runValidators: true }
         );

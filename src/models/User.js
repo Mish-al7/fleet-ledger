@@ -9,7 +9,6 @@ const UserSchema = new mongoose.Schema({
     email: {
         type: String,
         required: [true, 'Please provide an email'],
-        unique: true,
         match: [
             /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
             'Please provide a valid email address',
@@ -25,6 +24,12 @@ const UserSchema = new mongoose.Schema({
         enum: ['admin', 'driver'],
         default: 'driver',
     },
+    company_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Company',
+        required: [true, 'Company is required'],
+        index: true,
+    },
     assignedVehicles: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Vehicle',
@@ -32,5 +37,8 @@ const UserSchema = new mongoose.Schema({
 }, {
     timestamps: true,
 });
+
+// Email unique per company (not globally)
+UserSchema.index({ email: 1, company_id: 1 }, { unique: true });
 
 export default mongoose.models.User || mongoose.model('User', UserSchema);

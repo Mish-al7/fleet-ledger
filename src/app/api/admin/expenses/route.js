@@ -13,6 +13,7 @@ export async function GET(req) {
 
         await dbConnect();
 
+        const company_id = session.user.company_id;
         const { searchParams } = new URL(req.url);
         const vehicleId = searchParams.get('vehicle_id');
         const frequency = searchParams.get('frequency');
@@ -20,7 +21,7 @@ export async function GET(req) {
         const limit = parseInt(searchParams.get('limit')) || 100;
         const skip = (page - 1) * limit;
 
-        let query = {};
+        let query = { company_id };
         if (vehicleId) query.vehicle_id = vehicleId;
         if (vehicleId === 'null') query.vehicle_id = null; // Clean filter for company-level
 
@@ -66,6 +67,10 @@ export async function POST(req) {
 
         const body = await req.json();
         const { expense_type, description, amount, frequency, start_date, vehicle_id } = body;
+        const company_id = session.user.company_id;
+
+        // Strip any client-sent company_id
+        delete body.company_id;
 
         // Validation
         if (!expense_type || !description || !amount || !frequency || !start_date) {
@@ -86,6 +91,7 @@ export async function POST(req) {
             status,
             vehicle_id: vehicle_id || null, // Ensure explicit null if empty
             created_by: session.user.id,
+            company_id,
             last_posted_date: last_posted
         });
 

@@ -17,9 +17,10 @@ export async function DELETE(req, { params }) {
         await dbConnect();
 
         const { id } = await params;
+        const company_id = session.user.company_id;
 
-        // Find the entry before deleting to get its date/time for recalculation
-        const entryToDelete = await AdminCashLedger.findById(id);
+        // Find the entry before deleting (verify ownership)
+        const entryToDelete = await AdminCashLedger.findOne({ _id: id, company_id });
 
         if (!entryToDelete) {
             return NextResponse.json({ error: 'Entry not found' }, { status: 404 });
@@ -29,18 +30,20 @@ export async function DELETE(req, { params }) {
         const deletedCreatedAt = entryToDelete.createdAt;
 
         // Delete the entry
-        await AdminCashLedger.findByIdAndDelete(id);
+        await AdminCashLedger.findOneAndDelete({ _id: id, company_id });
 
-        // Recalculate all subsequent entries
+        // Recalculate all subsequent entries (scoped to company)
         const subsequentEntries = await AdminCashLedger.find({
+            company_id,
             $or: [
                 { date: { $gt: deletedDate } },
                 { date: deletedDate, createdAt: { $gt: deletedCreatedAt } }
             ]
         }).sort({ date: 1, createdAt: 1 });
 
-        // Get the balance from the entry before the deleted one
+        // Get the balance from the entry before the deleted one (scoped to company)
         const previousEntry = await AdminCashLedger.findOne({
+            company_id,
             $or: [
                 { date: { $lt: deletedDate } },
                 { date: deletedDate, createdAt: { $lt: deletedCreatedAt } }
@@ -86,6 +89,7 @@ export async function PUT(req, { params }) {
         const { id } = await params;
         const body = await req.json();
         const { date, description, type, amount } = body;
+        const company_id = session.user.company_id;
 
         // Validation
         if (!date || !description || !type || amount === undefined) {
@@ -109,8 +113,8 @@ export async function PUT(req, { params }) {
             );
         }
 
-        // Find the entry to update
-        const existingEntry = await AdminCashLedger.findById(id);
+        // Find the entry to update (verify ownership)
+        const existingEntry = await AdminCashLedger.findOne({ _id: id, company_id });
 
         if (!existingEntry) {
             return NextResponse.json({ error: 'Entry not found' }, { status: 404 });
@@ -122,8 +126,9 @@ export async function PUT(req, { params }) {
         existingEntry.type = type;
         existingEntry.amount = parseFloat(amount);
 
-        // Recalculate running balance for this entry
+        // Recalculate running balance for this entry (scoped to company)
         const previousEntry = await AdminCashLedger.findOne({
+            company_id,
             $or: [
                 { date: { $lt: existingEntry.date } },
                 { date: existingEntry.date, createdAt: { $lt: existingEntry.createdAt } }
@@ -140,8 +145,9 @@ export async function PUT(req, { params }) {
 
         await existingEntry.save();
 
-        // Recalculate all subsequent entries
+        // Recalculate all subsequent entries (scoped to company)
         const subsequentEntries = await AdminCashLedger.find({
+            company_id,
             $or: [
                 { date: { $gt: existingEntry.date } },
                 { date: existingEntry.date, createdAt: { $gt: existingEntry.createdAt } }

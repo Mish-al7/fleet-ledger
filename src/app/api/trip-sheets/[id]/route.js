@@ -13,8 +13,9 @@ export async function GET(request, { params }) {
 
         await dbConnect();
         const { id } = await params;
+        const company_id = session.user.company_id;
 
-        const tripSheet = await TripSheet.findById(id);
+        const tripSheet = await TripSheet.findOne({ _id: id, company_id });
         if (!tripSheet) {
             return NextResponse.json({ error: 'Trip Sheet not found' }, { status: 404 });
         }
@@ -28,7 +29,6 @@ export async function GET(request, { params }) {
 
 export async function PUT(request, { params }) {
     try {
-
         const session = await getServerSession(authOptions);
         if (!session || session.user.role !== 'admin') {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -37,14 +37,17 @@ export async function PUT(request, { params }) {
         await dbConnect();
         const { id } = await params;
         const data = await request.json();
+        const company_id = session.user.company_id;
 
-        // Prevent updating trip_sheet_no
+        // Prevent updating trip_sheet_no and company_id
         delete data.trip_sheet_no;
+        delete data.company_id;
 
-        const tripSheet = await TripSheet.findByIdAndUpdate(id, data, {
-            new: true,
-            runValidators: true,
-        });
+        const tripSheet = await TripSheet.findOneAndUpdate(
+            { _id: id, company_id },
+            data,
+            { new: true, runValidators: true }
+        );
 
         if (!tripSheet) {
             return NextResponse.json({ error: 'Trip Sheet not found' }, { status: 404 });
@@ -66,8 +69,9 @@ export async function DELETE(request, { params }) {
 
         await dbConnect();
         const { id } = await params;
+        const company_id = session.user.company_id;
 
-        const tripSheet = await TripSheet.findByIdAndDelete(id);
+        const tripSheet = await TripSheet.findOneAndDelete({ _id: id, company_id });
 
         if (!tripSheet) {
             return NextResponse.json({ error: 'Trip Sheet not found' }, { status: 404 });

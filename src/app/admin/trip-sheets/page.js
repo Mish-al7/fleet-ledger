@@ -35,7 +35,7 @@ export default function TripSheetsPage() {
             const res = await fetch(`/api/trip-sheets?${queryParams.toString()}`);
             if (res.ok) {
                 const data = await res.json();
-                setTripSheets(data);
+                setTripSheets(data.data || data);
             }
         } catch (error) {
             console.error('Failed to fetch trip sheets', error);

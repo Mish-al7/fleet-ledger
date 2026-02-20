@@ -26,6 +26,12 @@ const AdminCashLedgerSchema = new mongoose.Schema({
         required: true,
         default: 0,
     },
+    company_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Company',
+        required: [true, 'Company is required'],
+        index: true,
+    },
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',

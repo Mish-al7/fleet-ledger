@@ -14,8 +14,9 @@ export async function GET(request, { params }) {
 
         await dbConnect();
         const { id } = await params;
+        const company_id = session.user.company_id;
 
-        const tripSheet = await TripSheet.findById(id);
+        const tripSheet = await TripSheet.findOne({ _id: id, company_id });
         if (!tripSheet) {
             return NextResponse.json({ error: 'Trip Sheet not found' }, { status: 404 });
         }

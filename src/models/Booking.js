@@ -5,7 +5,6 @@ const BookingSchema = new mongoose.Schema({
     booking_no: {
         type: String,
         required: true,
-        unique: true,
     },
     booking_date: {
         type: Date,
@@ -16,6 +15,12 @@ const BookingSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true,
+    },
+    company_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Company',
+        required: [true, 'Company is required'],
+        index: true,
     },
     status: {
         type: String,
@@ -132,16 +137,20 @@ const BookingSchema = new mongoose.Schema({
 // Index for efficient overlap queries
 BookingSchema.index({ vehicle_id: 1, status: 1, journey_start_date: 1, journey_return_date: 1 });
 
+// Booking number unique per company
+BookingSchema.index({ booking_no: 1, company_id: 1 }, { unique: true });
+
 // Static method to generate booking number
-BookingSchema.statics.generateBookingNo = async function () {
+BookingSchema.statics.generateBookingNo = async function (companyId) {
     const today = new Date();
     const dateStr = today.toISOString().slice(0, 10).replace(/-/g, '');
 
-    // Find count of bookings created today
+    // Find count of bookings created today for this company
     const startOfDay = new Date(today.setHours(0, 0, 0, 0));
     const endOfDay = new Date(today.setHours(23, 59, 59, 999));
 
     const count = await this.countDocuments({
+        company_id: companyId,
         createdAt: { $gte: startOfDay, $lte: endOfDay }
     });
 
@@ -150,7 +159,7 @@ BookingSchema.statics.generateBookingNo = async function () {
 };
 
 // Static method to check vehicle availability (overlap detection)
-BookingSchema.statics.checkVehicleAvailability = async function (vehicleId, startDate, endDate, startTime, endTime, excludeBookingId = null) {
+BookingSchema.statics.checkVehicleAvailability = async function (vehicleId, startDate, endDate, startTime, endTime, excludeBookingId = null, companyId = null) {
     const query = {
         vehicle_id: vehicleId,
         status: { $in: ['pending', 'approved'] },
@@ -158,6 +167,11 @@ BookingSchema.statics.checkVehicleAvailability = async function (vehicleId, star
         journey_start_date: { $lte: new Date(endDate) },
         journey_return_date: { $gte: new Date(startDate) },
     };
+
+    // Scope to company
+    if (companyId) {
+        query.company_id = companyId;
+    }
 
     // Exclude current booking when updating
     if (excludeBookingId) {

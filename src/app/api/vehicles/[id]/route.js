@@ -15,8 +15,9 @@ export async function GET(request, { params }) {
 
         await dbConnect();
         const { id } = await params;
+        const company_id = session.user.company_id;
 
-        const vehicle = await Vehicle.findById(id);
+        const vehicle = await Vehicle.findOne({ _id: id, company_id });
         if (!vehicle) {
             return NextResponse.json({ error: 'Vehicle not found' }, { status: 404 });
         }
@@ -38,26 +39,34 @@ export async function PUT(request, { params }) {
         await dbConnect();
         const { id } = await params;
         const data = await request.json();
+        const company_id = session.user.company_id;
 
-        // Check if vehicle_no exists (if changing)
+        // Strip any client-sent company_id
+        delete data.company_id;
+
+        // Verify company ownership
+        const existing = await Vehicle.findOne({ _id: id, company_id });
+        if (!existing) {
+            return NextResponse.json({ error: 'Vehicle not found' }, { status: 404 });
+        }
+
+        // Check if vehicle_no exists within same company (if changing)
         if (data.vehicle_no) {
-            const existing = await Vehicle.findOne({
+            const duplicate = await Vehicle.findOne({
                 vehicle_no: data.vehicle_no,
+                company_id,
                 _id: { $ne: id }
             });
-            if (existing) {
+            if (duplicate) {
                 return NextResponse.json({ error: 'Vehicle number already exists' }, { status: 400 });
             }
         }
 
-        const vehicle = await Vehicle.findByIdAndUpdate(id, data, {
-            new: true,
-            runValidators: true,
-        });
-
-        if (!vehicle) {
-            return NextResponse.json({ error: 'Vehicle not found' }, { status: 404 });
-        }
+        const vehicle = await Vehicle.findOneAndUpdate(
+            { _id: id, company_id },
+            data,
+            { new: true, runValidators: true }
+        );
 
         return NextResponse.json(vehicle);
     } catch (error) {
@@ -75,27 +84,30 @@ export async function DELETE(request, { params }) {
 
         await dbConnect();
         const { id } = await params;
+        const company_id = session.user.company_id;
 
-        // Check for dependencies
-        const tripCount = await Trip.countDocuments({ vehicle_id: id });
+        // Verify company ownership
+        const vehicle = await Vehicle.findOne({ _id: id, company_id });
+        if (!vehicle) {
+            return NextResponse.json({ error: 'Vehicle not found' }, { status: 404 });
+        }
+
+        // Check for dependencies within same company
+        const tripCount = await Trip.countDocuments({ vehicle_id: id, company_id });
         if (tripCount > 0) {
             return NextResponse.json({
                 error: `Cannot delete vehicle. It has ${tripCount} associated existing trips.`
             }, { status: 400 });
         }
 
-        const serviceLogCount = await VehicleServiceLog.countDocuments({ vehicle_id: id });
+        const serviceLogCount = await VehicleServiceLog.countDocuments({ vehicle_id: id, company_id });
         if (serviceLogCount > 0) {
             return NextResponse.json({
                 error: `Cannot delete vehicle. It has ${serviceLogCount} service logs.`
             }, { status: 400 });
         }
 
-        const vehicle = await Vehicle.findByIdAndDelete(id);
-
-        if (!vehicle) {
-            return NextResponse.json({ error: 'Vehicle not found' }, { status: 404 });
-        }
+        await Vehicle.findOneAndDelete({ _id: id, company_id });
 
         return NextResponse.json({ message: 'Vehicle deleted successfully' });
     } catch (error) {
