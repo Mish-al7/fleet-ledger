@@ -4,6 +4,8 @@ import { authOptions } from '@/lib/auth';
 import dbConnect from '@/lib/dbConnect';
 import Company from '@/models/Company';
 import User from '@/models/User';
+import Vehicle from '@/models/Vehicle';
+import Trip from '@/models/Trip';
 import bcrypt from 'bcryptjs';
 
 // GET: List all companies
@@ -16,11 +18,31 @@ export async function GET(req) {
 
         await dbConnect();
 
-        const companies = await Company.find()
+        const companiesDocs = await Company.find()
             .sort({ createdAt: -1 })
             .lean();
 
-        return NextResponse.json({ success: true, data: companies });
+        // Fetch metrics for each company
+        const companiesWithMetrics = await Promise.all(
+            companiesDocs.map(async (company) => {
+                const [vehicleCount, tripCount, driverCount] = await Promise.all([
+                    Vehicle.countDocuments({ company_id: company._id }),
+                    Trip.countDocuments({ company_id: company._id }),
+                    User.countDocuments({ company_id: company._id, role: 'driver' }),
+                ]);
+
+                return {
+                    ...company,
+                    metrics: {
+                        vehicleCount,
+                        tripCount,
+                        driverCount,
+                    }
+                };
+            })
+        );
+
+        return NextResponse.json({ success: true, data: companiesWithMetrics });
     } catch (error) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }

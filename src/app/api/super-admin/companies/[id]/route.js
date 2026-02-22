@@ -24,17 +24,18 @@ export async function GET(req, { params }) {
         }
 
         // Get usage metrics
-        const [userCount, vehicleCount, tripCount] = await Promise.all([
+        const [userCount, vehicleCount, tripCount, driverCount] = await Promise.all([
             User.countDocuments({ company_id: id }),
             Vehicle.countDocuments({ company_id: id }),
             Trip.countDocuments({ company_id: id }),
+            User.countDocuments({ company_id: id, role: 'driver' }),
         ]);
 
         return NextResponse.json({
             success: true,
             data: {
                 ...company,
-                metrics: { userCount, vehicleCount, tripCount },
+                metrics: { userCount, vehicleCount, tripCount, driverCount },
             },
         });
     } catch (error) {

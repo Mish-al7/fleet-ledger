@@ -141,11 +141,11 @@ export default function CompanyDetailPage() {
                 </div>
 
                 {/* Usage Metrics */}
-                <div className="grid gap-4 grid-cols-3">
+                <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
                     <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col items-center justify-center text-center">
                         <Users size={24} className="text-purple-400 mb-2" />
-                        <p className="text-2xl font-bold text-white">{metrics.userCount || 0}</p>
-                        <p className="text-xs text-slate-400 mt-1">Users</p>
+                        <p className="text-2xl font-bold text-white">{metrics.driverCount || 0}</p>
+                        <p className="text-xs text-slate-400 mt-1">Drivers</p>
                     </div>
                     <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col items-center justify-center text-center">
                         <Truck size={24} className="text-blue-400 mb-2" />
@@ -156,6 +156,11 @@ export default function CompanyDetailPage() {
                         <MapPin size={24} className="text-emerald-400 mb-2" />
                         <p className="text-2xl font-bold text-white">{metrics.tripCount || 0}</p>
                         <p className="text-xs text-slate-400 mt-1">Trips</p>
+                    </div>
+                    <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col items-center justify-center text-center">
+                        <Users size={24} className="text-slate-500 mb-2 opacity-50" />
+                        <p className="text-2xl font-bold text-white">{metrics.userCount || 0}</p>
+                        <p className="text-xs text-slate-400 mt-1">Total Staff</p>
                     </div>
                 </div>
             </div>

@@ -55,8 +55,27 @@ export default function CompaniesPage() {
         }
     };
 
-    const handleStatusChange = async (id, newStatus) => {
-        if (!confirm(`Are you sure you want to ${newStatus === 'suspended' ? 'suspend' : 'activate'} this company?`)) return;
+    const [confirmModal, setConfirmModal] = useState({ show: false, id: null, status: '' });
+    const [updatingId, setUpdatingId] = useState(null);
+
+    const handleStatusChangeInitiate = (id, newStatus) => {
+        setConfirmModal({
+            show: true,
+            id,
+            status: newStatus
+        });
+    };
+
+    const handleStatusChangeExecute = async () => {
+        const { id, status: newStatus } = confirmModal;
+        setConfirmModal({ show: false, id: null, status: '' });
+        setUpdatingId(id);
+
+        // Optimistic update
+        const originalCompanies = [...companies];
+        setCompanies(companies.map(c =>
+            c._id === id ? { ...c, status: newStatus } : c
+        ));
 
         try {
             const res = await fetch(`/api/super-admin/companies/${id}`, {
@@ -65,9 +84,15 @@ export default function CompaniesPage() {
                 body: JSON.stringify({ status: newStatus }),
             });
             const json = await res.json();
-            if (json.success) fetchCompanies();
+            if (!json.success) {
+                setCompanies(originalCompanies);
+                alert(json.error || 'Failed to update status');
+            }
         } catch (err) {
+            setCompanies(originalCompanies);
             alert('Failed to update status');
+        } finally {
+            setUpdatingId(null);
         }
     };
 
@@ -122,7 +147,21 @@ export default function CompaniesPage() {
                                 <th className="text-left px-6 py-4 text-xs font-medium text-slate-400 uppercase tracking-wider">Email</th>
                                 <th className="text-left px-6 py-4 text-xs font-medium text-slate-400 uppercase tracking-wider">Plan</th>
                                 <th className="text-left px-6 py-4 text-xs font-medium text-slate-400 uppercase tracking-wider">Status</th>
-                                <th className="text-left px-6 py-4 text-xs font-medium text-slate-400 uppercase tracking-wider">Created</th>
+                                <th className="text-center px-4 py-4 text-xs font-medium text-slate-400 uppercase tracking-wider">
+                                    <div className="flex flex-col items-center gap-1">
+                                        <span>Vehicles</span>
+                                    </div>
+                                </th>
+                                <th className="text-center px-4 py-4 text-xs font-medium text-slate-400 uppercase tracking-wider">
+                                    <div className="flex flex-col items-center gap-1">
+                                        <span>Trips</span>
+                                    </div>
+                                </th>
+                                <th className="text-center px-4 py-4 text-xs font-medium text-slate-400 uppercase tracking-wider">
+                                    <div className="flex flex-col items-center gap-1">
+                                        <span>Drivers</span>
+                                    </div>
+                                </th>
                                 <th className="text-right px-6 py-4 text-xs font-medium text-slate-400 uppercase tracking-wider">Actions</th>
                             </tr>
                         </thead>
@@ -164,34 +203,46 @@ export default function CompaniesPage() {
                                             <span className={`text-xs font-medium px-3 py-1 rounded-full ${statusColors[company.status] || ''}`}>
                                                 {company.status}
                                             </span>
+                                            {updatingId === company._id && (
+                                                <span className="ml-2 inline-block h-2 w-2 rounded-full bg-purple-500 animate-pulse"></span>
+                                            )}
                                         </td>
-                                        <td className="px-6 py-4 text-sm text-slate-400">
-                                            {new Date(company.createdAt).toLocaleDateString()}
+                                        <td className="px-4 py-4 text-center">
+                                            <span className="text-white font-semibold text-sm">{company.metrics?.vehicleCount || 0}</span>
+                                        </td>
+                                        <td className="px-4 py-4 text-center">
+                                            <span className="text-white font-semibold text-sm">{company.metrics?.tripCount || 0}</span>
+                                        </td>
+                                        <td className="px-4 py-4 text-center">
+                                            <span className="text-white font-semibold text-sm">{company.metrics?.driverCount || 0}</span>
                                         </td>
                                         <td className="px-6 py-4 text-right">
-                                            <div className="flex items-center justify-end gap-2">
+                                            <div className="flex items-center justify-end gap-2 text-white">
                                                 <button
                                                     onClick={() => router.push(`/super-admin/companies/${company._id}`)}
                                                     className="p-2 text-slate-400 hover:text-purple-400 hover:bg-purple-500/10 rounded-lg transition-colors"
                                                     title="View Details"
+                                                    disabled={updatingId === company._id}
                                                 >
                                                     <Eye size={16} />
                                                 </button>
                                                 {company.status === 'active' ? (
                                                     <button
-                                                        onClick={() => handleStatusChange(company._id, 'suspended')}
+                                                        onClick={() => handleStatusChangeInitiate(company._id, 'suspended')}
                                                         className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                                                         title="Suspend"
+                                                        disabled={updatingId === company._id}
                                                     >
-                                                        <Ban size={16} />
+                                                        <Ban size={16} className={updatingId === company._id ? 'animate-spin' : ''} />
                                                     </button>
                                                 ) : (
                                                     <button
-                                                        onClick={() => handleStatusChange(company._id, 'active')}
+                                                        onClick={() => handleStatusChangeInitiate(company._id, 'active')}
                                                         className="p-2 text-slate-400 hover:text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition-colors"
                                                         title="Activate"
+                                                        disabled={updatingId === company._id}
                                                     >
-                                                        <CheckCircle size={16} />
+                                                        <CheckCircle size={16} className={updatingId === company._id ? 'animate-spin' : ''} />
                                                     </button>
                                                 )}
                                             </div>
@@ -287,6 +338,39 @@ export default function CompaniesPage() {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+            {/* Confirmation Modal */}
+            {confirmModal.show && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+                    <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm p-6 space-y-6 shadow-2xl">
+                        <div className="text-center space-y-3">
+                            <div className={`mx-auto w-12 h-12 rounded-full flex items-center justify-center ${confirmModal.status === 'suspended' ? 'bg-red-500/20 text-red-400' : 'bg-emerald-500/20 text-emerald-400'}`}>
+                                {confirmModal.status === 'suspended' ? <Ban size={24} /> : <CheckCircle size={24} />}
+                            </div>
+                            <div>
+                                <h2 className="text-lg font-bold text-white uppercase tracking-tight">Confirm Action</h2>
+                                <p className="text-sm text-slate-400 mt-1">
+                                    Are you sure you want to {confirmModal.status === 'suspended' ? 'suspend' : 'activate'} this company?
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setConfirmModal({ show: false, id: null, status: '' })}
+                                className="flex-1 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors font-medium text-sm"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleStatusChangeExecute}
+                                className={`flex-1 px-4 py-2 text-white rounded-lg transition-colors font-medium text-sm ${confirmModal.status === 'suspended' ? 'bg-red-600 hover:bg-red-500' : 'bg-emerald-600 hover:bg-emerald-500'}`}
+                            >
+                                Confirm
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
