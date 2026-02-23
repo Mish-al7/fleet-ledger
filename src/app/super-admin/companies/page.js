@@ -119,6 +119,7 @@ export default function CompaniesPage() {
     const statusColors = {
         active: 'bg-emerald-500/20 text-emerald-400',
         suspended: 'bg-red-500/20 text-red-400',
+        pending_approval: 'bg-amber-500/20 text-amber-400',
     };
 
     return (
@@ -226,7 +227,16 @@ export default function CompaniesPage() {
                                                 >
                                                     <Eye size={16} />
                                                 </button>
-                                                {company.status === 'active' ? (
+                                                {company.status === 'pending_approval' ? (
+                                                    <button
+                                                        onClick={() => handleStatusChangeInitiate(company._id, 'active')}
+                                                        className="p-2 text-slate-400 hover:text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition-colors"
+                                                        title="Approve"
+                                                        disabled={updatingId === company._id}
+                                                    >
+                                                        <CheckCircle size={16} className={updatingId === company._id ? 'animate-spin' : ''} />
+                                                    </button>
+                                                ) : company.status === 'active' ? (
                                                     <button
                                                         onClick={() => handleStatusChangeInitiate(company._id, 'suspended')}
                                                         className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"

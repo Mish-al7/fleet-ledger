@@ -20,8 +20,8 @@ const CompanySchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['active', 'suspended'],
-        default: 'active',
+        enum: ['active', 'suspended', 'pending_approval'],
+        default: 'pending_approval',
     },
     created_at: {
         type: Date,

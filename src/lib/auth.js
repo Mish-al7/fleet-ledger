@@ -14,7 +14,7 @@ export const authOptions = {
             async authorize(credentials) {
                 await dbConnect();
 
-                const user = await User.findOne({ email: credentials.email });
+                const user = await User.findOne({ email: credentials.email }).populate('company_id');
 
                 if (!user) {
                     throw new Error("No user found with the email");
@@ -26,12 +26,22 @@ export const authOptions = {
                     throw new Error("Invalid password");
                 }
 
+                // Check company status for non-super admins
+                if (user.role !== 'super_admin' && user.company_id) {
+                    if (user.company_id.status === 'suspended') {
+                        throw new Error("ACCOUNT_SUSPENDED");
+                    }
+                    if (user.company_id.status === 'pending_approval') {
+                        throw new Error("PENDING_APPROVAL");
+                    }
+                }
+
                 return {
                     id: user._id.toString(),
                     name: user.name,
                     email: user.email,
                     role: user.role,
-                    company_id: user.company_id ? user.company_id.toString() : null,
+                    company_id: user.company_id ? user.company_id._id.toString() : null,
                 };
             },
         }),

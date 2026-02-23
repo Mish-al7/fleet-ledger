@@ -4,6 +4,7 @@ import { signIn } from 'next-auth/react';
 import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { LogIn, AlertCircle } from 'lucide-react';
+import Link from 'next/link';
 
 function SignInContent() {
     const router = useRouter();
@@ -27,7 +28,13 @@ function SignInContent() {
             });
 
             if (result?.error) {
-                setError(result.error);
+                if (result.error === 'PENDING_APPROVAL') {
+                    router.push('/auth/pending-approval');
+                } else if (result.error === 'ACCOUNT_SUSPENDED') {
+                    router.push('/auth/suspended');
+                } else {
+                    setError(result.error);
+                }
                 setLoading(false);
             } else {
                 // Fetch session to get user role
@@ -77,7 +84,7 @@ function SignInContent() {
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
-                                className="w-full px-4 py-3 bg-slate-950 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className="w-full px-4 py-3 bg-slate-950 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                                 placeholder=""
                             />
                         </div>
@@ -89,7 +96,7 @@ function SignInContent() {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
-                                className="w-full px-4 py-3 bg-slate-950 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className="w-full px-4 py-3 bg-slate-950 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                                 placeholder=""
                             />
                         </div>
@@ -109,6 +116,15 @@ function SignInContent() {
                             </>
                         )}
                     </button>
+
+                    <div className="pt-4 border-t border-slate-800 text-center">
+                        <p className="text-sm text-slate-400">
+                            New company?{' '}
+                            <Link href="/auth/signup" className="text-blue-400 hover:text-blue-300 font-medium transition-colors">
+                                Register now
+                            </Link>
+                        </p>
+                    </div>
                 </form>
 
 
