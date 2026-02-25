@@ -1,0 +1,9 @@
+# Query: admin portal
+# ContextLines: 1
+
+1 result - 1 file
+
+src/app/admin/layout.js:
+  56                      <h1 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
+  57:                         jitechs portal
+  58                      </h1>
