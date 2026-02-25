@@ -7,6 +7,22 @@ import { signOut, useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
+const NavItem = ({ href, icon: Icon, label, pathname }) => {
+    const isActive = pathname.startsWith(href);
+    return (
+        <Link
+            href={href}
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive
+                ? 'bg-blue-600/20 text-blue-400 border border-blue-600/30'
+                : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                }`}
+        >
+            <Icon size={20} />
+            <span className="font-medium text-sm">{label}</span>
+        </Link>
+    );
+};
+
 export default function AdminLayout({ children }) {
     const pathname = usePathname();
     const router = useRouter();
@@ -32,21 +48,6 @@ export default function AdminLayout({ children }) {
         );
     }
 
-    const NavItem = ({ href, icon: Icon, label }) => {
-        const isActive = pathname.startsWith(href);
-        return (
-            <Link
-                href={href}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive
-                    ? 'bg-blue-600/20 text-blue-400 border border-blue-600/30'
-                    : 'text-slate-400 hover:bg-slate-800 hover:text-white'
-                    }`}
-            >
-                <Icon size={20} />
-                <span className="font-medium text-sm">{label}</span>
-            </Link>
-        );
-    };
 
     return (
         <div className="min-h-screen bg-slate-950 flex flex-col md:flex-row">
@@ -60,16 +61,17 @@ export default function AdminLayout({ children }) {
                 </div>
 
                 <nav className="px-4 pb-4 space-y-2 overflow-x-auto md:overflow-visible flex md:flex-col gap-2 md:gap-0">
-                    <NavItem href="/admin/summary" icon={LayoutDashboard} label="Summary" />
-                    <NavItem href="/admin/ledger" icon={FileText} label="Ledgers" />
-                    <NavItem href="/admin/vehicles" icon={Truck} label="Vehicles" />
-                    <NavItem href="/admin/expenses" icon={Wallet} label="Expenses" />
-                    <NavItem href="/admin/drivers" icon={Users} label="Drivers" />
-                    <NavItem href="/admin/opening-balances" icon={Settings} label="Opening Balances" />
-                    <NavItem href="/admin/trip-sheets" icon={FileText} label="Trip Sheets" />
-                    <NavItem href="/admin/bookings" icon={CalendarCheck} label="Bookings" />
-                    <NavItem href="/admin/personal-ledger" icon={Wallet} label="Personal Ledger" />
-                    <NavItem href="/admin/settings" icon={Cog} label="Company Settings" />
+                    <NavItem href="/admin/summary" icon={LayoutDashboard} label="Summary" pathname={pathname} />
+                    <NavItem href="/admin/daily" icon={CalendarCheck} label="Daily Dashboard" pathname={pathname} />
+                    <NavItem href="/admin/ledger" icon={FileText} label="Ledgers" pathname={pathname} />
+                    <NavItem href="/admin/vehicles" icon={Truck} label="Vehicles" pathname={pathname} />
+                    <NavItem href="/admin/expenses" icon={Wallet} label="Expenses" pathname={pathname} />
+                    <NavItem href="/admin/drivers" icon={Users} label="Drivers" pathname={pathname} />
+                    <NavItem href="/admin/opening-balances" icon={Settings} label="Opening Balances" pathname={pathname} />
+                    <NavItem href="/admin/trip-sheets" icon={FileText} label="Trip Sheets" pathname={pathname} />
+                    <NavItem href="/admin/bookings" icon={CalendarCheck} label="Bookings" pathname={pathname} />
+                    <NavItem href="/admin/personal-ledger" icon={Wallet} label="Personal Ledger" pathname={pathname} />
+                    <NavItem href="/admin/settings" icon={Cog} label="Company Settings" pathname={pathname} />
 
                     <div className="md:mt-auto pt-4 md:border-t border-slate-800">
                         <button
