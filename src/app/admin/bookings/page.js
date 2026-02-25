@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Calendar as CalendarIcon, MapPin, Clock, Car, FileText, Eye, Check, X, Filter, ChevronDown, Trash2, Edit } from 'lucide-react';
+import { Calendar as CalendarIcon, MapPin, Clock, Car, FileText, Eye, Check, X, Filter, ChevronDown, Trash2, Edit, Plus, Download } from 'lucide-react';
 import BookingEditModal from './BookingEditModal';
 import BookingCreateModal from './BookingCreateModal';
 import BookingCalendar from '@/app/components/BookingCalendar';
-import { Plus } from 'lucide-react';
+import { formatDate } from '@/lib/dateUtils';
 
 // Status Badge Component
 const StatusBadge = ({ status }) => {
@@ -29,7 +29,7 @@ const StatusBadge = ({ status }) => {
 };
 
 // Booking Detail Modal
-const BookingDetailModal = ({ booking, onClose, onApprove, onReject, actionLoading }) => {
+const BookingDetailModal = ({ booking, onClose, onApprove, onReject, actionLoading, onDownloadPDF, downloadLoading }) => {
     if (!booking) return null;
 
     return (
@@ -82,8 +82,8 @@ const BookingDetailModal = ({ booking, onClose, onApprove, onReject, actionLoadi
                     <div className="bg-slate-800/50 rounded-xl p-4">
                         <h3 className="text-sm font-medium text-amber-400 mb-3">Schedule</h3>
                         <div className="grid grid-cols-4 gap-4 text-sm">
-                            <div><span className="text-slate-500">Start Date:</span><br /><span className="text-white">{new Date(booking.journey_start_date).toLocaleDateString()}</span></div>
-                            <div><span className="text-slate-500">Return Date:</span><br /><span className="text-white">{new Date(booking.journey_return_date).toLocaleDateString()}</span></div>
+                            <div><span className="text-slate-500">Start Date:</span><br /><span className="text-white">{formatDate(booking.journey_start_date)}</span></div>
+                            <div><span className="text-slate-500">Return Date:</span><br /><span className="text-white">{formatDate(booking.journey_return_date)}</span></div>
                             <div><span className="text-slate-500">Time:</span><br /><span className="text-white">{booking.trip_start_time} - {booking.trip_end_time}</span></div>
                             <div><span className="text-slate-500">Days / KM:</span><br /><span className="text-white">{booking.total_days} days / {booking.total_kilometers || 0} km</span></div>
                         </div>
@@ -101,8 +101,18 @@ const BookingDetailModal = ({ booking, onClose, onApprove, onReject, actionLoadi
                     </div>
 
                     {/* Created By */}
-                    <div className="text-xs text-slate-500">
-                        Created by: {booking.created_by?.name || 'Unknown'} on {new Date(booking.createdAt).toLocaleString()}
+                    <div className="flex items-center justify-between gap-4">
+                        <div className="text-xs text-slate-500">
+                            Created by: {booking.created_by?.name || 'Unknown'} on {new Date(booking.createdAt).toLocaleString()}
+                        </div>
+                        <button
+                            onClick={() => onDownloadPDF(booking)}
+                            disabled={downloadLoading}
+                            className="flex items-center gap-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg text-xs font-medium border border-slate-700 transition-all disabled:opacity-50"
+                        >
+                            <Download size={14} />
+                            {downloadLoading ? 'Generating...' : 'Download PDF'}
+                        </button>
                     </div>
 
                     {/* Action Buttons (only for pending) */}
@@ -141,6 +151,7 @@ export default function AdminBookingsPage() {
     const [editingBooking, setEditingBooking] = useState(null);
     const [isCreating, setIsCreating] = useState(false);
     const [actionLoading, setActionLoading] = useState(false);
+    const [downloadLoading, setDownloadLoading] = useState(false);
     const [viewMode, setViewMode] = useState('list'); // 'list' | 'calendar'
 
     // Filters
@@ -252,6 +263,29 @@ export default function AdminBookingsPage() {
 
         setEditingBooking(null);
         fetchBookings();
+    }
+
+    async function handleDownloadPDF(booking) {
+        setDownloadLoading(true);
+        try {
+            const res = await fetch(`/api/bookings/${booking._id}/pdf`);
+            if (!res.ok) throw new Error('Failed to generate PDF');
+
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Booking_${booking.booking_no}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        } catch (err) {
+            console.error(err);
+            alert('Error downloading PDF: ' + err.message);
+        } finally {
+            setDownloadLoading(false);
+        }
     }
 
     return (
@@ -370,6 +404,14 @@ export default function AdminBookingsPage() {
                         <FileText size={48} className="mx-auto text-slate-700 mb-4" />
                         <p className="text-slate-500">No bookings found</p>
                     </div>
+                ) : viewMode === 'calendar' ? (
+                    <div className="p-4">
+                        <BookingCalendar
+                            bookings={bookings}
+                            onBookingClick={setSelectedBooking}
+                            showFullVehicleNo={true}
+                        />
+                    </div>
                 ) : (
                     <>
                         {viewMode === 'list' ? (
@@ -399,7 +441,7 @@ export default function AdminBookingsPage() {
                                                     {booking.pickup_location} → {booking.trip_destination}
                                                 </td>
                                                 <td className="px-4 py-3 text-slate-300 text-xs">
-                                                    {new Date(booking.journey_start_date).toLocaleDateString()} - {new Date(booking.journey_return_date).toLocaleDateString()}
+                                                    {formatDate(booking.journey_start_date)} - {formatDate(booking.journey_return_date)}
                                                 </td>
                                                 <td className="px-4 py-3">
                                                     <StatusBadge status={booking.status} />
@@ -476,6 +518,8 @@ export default function AdminBookingsPage() {
                     onApprove={(id) => handleStatusChange(id, 'approved')}
                     onReject={(id) => handleStatusChange(id, 'rejected')}
                     actionLoading={actionLoading}
+                    onDownloadPDF={handleDownloadPDF}
+                    downloadLoading={downloadLoading}
                 />
             )}
 

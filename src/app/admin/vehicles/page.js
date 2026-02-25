@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Truck, Plus, Check, X } from 'lucide-react';
 import Link from 'next/link';
+import { formatDate } from '@/lib/dateUtils';
 
 export default function VehiclesPage() {
     const [vehicles, setVehicles] = useState([]);
@@ -13,6 +14,7 @@ export default function VehiclesPage() {
 
     const [formData, setFormData] = useState({
         vehicle_no: '',
+        nickname: '',
         status: 'active'
     });
 
@@ -52,7 +54,7 @@ export default function VehiclesPage() {
 
             // Success - refresh list and reset form
             await fetchVehicles();
-            setFormData({ vehicle_no: '', status: 'active' });
+            setFormData({ vehicle_no: '', nickname: '', status: 'active' });
             setShowForm(false);
         } catch (err) {
             setError(err.message);
@@ -92,18 +94,32 @@ export default function VehiclesPage() {
                     )}
 
                     <form onSubmit={handleSubmit} className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-2">
-                                Vehicle Number
-                            </label>
-                            <input
-                                type="text"
-                                value={formData.vehicle_no}
-                                onChange={(e) => setFormData({ ...formData, vehicle_no: e.target.value.toUpperCase() })}
-                                required
-                                placeholder="KA-01-AB-1234"
-                                className="w-full px-4 py-3 bg-slate-950 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-slate-300 mb-2">
+                                    Vehicle Number
+                                </label>
+                                <input
+                                    type="text"
+                                    value={formData.vehicle_no}
+                                    onChange={(e) => setFormData({ ...formData, vehicle_no: e.target.value.toUpperCase() })}
+                                    required
+                                    placeholder="KA-01-AB-1234"
+                                    className="w-full px-4 py-3 bg-slate-950 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-300 mb-2">
+                                    Nickname <span className="text-slate-500 text-xs font-normal">(Optional)</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    value={formData.nickname}
+                                    onChange={(e) => setFormData({ ...formData, nickname: e.target.value })}
+                                    placeholder="e.g. Red Truck"
+                                    className="w-full px-4 py-3 bg-slate-950 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                            </div>
                         </div>
 
                         <div>
@@ -152,13 +168,16 @@ export default function VehiclesPage() {
                             </div>
                             <div className="flex-1">
                                 <h3 className="font-bold text-lg text-white group-hover:text-blue-400 transition-colors uppercase">{vehicle.vehicle_no}</h3>
+                                {vehicle.nickname && (
+                                    <p className="text-slate-400 text-sm">{vehicle.nickname}</p>
+                                )}
                                 <div className="flex items-center gap-2 mt-1">
                                     <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-md ${vehicle.status === 'active' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-slate-800 text-slate-400'}`}>
                                         {vehicle.status}
                                     </span>
                                     {vehicle.next_service_date && (
                                         <span className="bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 text-[10px] font-bold px-2 py-0.5 rounded-md">
-                                            Service Follow-up: {new Date(vehicle.next_service_date).toLocaleDateString('en-GB')}
+                                            Service Follow-up: {formatDate(vehicle.next_service_date)}
                                         </span>
                                     )}
                                 </div>

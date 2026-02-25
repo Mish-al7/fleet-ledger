@@ -24,10 +24,10 @@ export async function GET(req) {
         // Build query
         const query = {};
 
-        // Drivers can only see their own bookings
-        if (session.user.role === 'driver') {
-            query.created_by = session.user.id;
-        }
+        // Drivers can now see all bookings (Requirement Change)
+        // if (session.user.role === 'driver') {
+        //     query.created_by = session.user.id;
+        // }
 
         // Apply filters
         if (status && status !== 'all') {
@@ -103,18 +103,33 @@ export async function POST(req) {
             }, { status: 409 });
         }
 
-        // Generate booking number
-        const booking_no = await Booking.generateBookingNo();
+        let booking;
+        // Retry logic for duplicate booking number (race condition handling)
+        for (let attempt = 1; attempt <= 3; attempt++) {
+            try {
+                // Generate booking number
+                const booking_no = await Booking.generateBookingNo();
 
-        // Create booking
-        const booking = await Booking.create({
-            ...body,
-            booking_no,
-            booking_date: new Date(),
-            created_by: session.user.id,
-            vehicle_no: vehicle.vehicle_no,
-            status: 'pending',
-        });
+                // Create booking
+                booking = await Booking.create({
+                    ...body,
+                    booking_no,
+                    booking_date: new Date(),
+                    created_by: session.user.id,
+                    vehicle_no: vehicle.vehicle_no,
+                    status: 'pending',
+                });
+                break; // specific: Success!
+            } catch (error) {
+                // Check for duplicate key error on booking_no
+                if (error.code === 11000 && (error.keyPattern?.booking_no || error.message?.includes('booking_no'))) {
+                    if (attempt === 3) throw new Error('Failed to generate unique booking number after 3 attempts');
+                    console.warn(`Duplicate booking number generated, retrying (attempt ${attempt}/3)...`);
+                    continue;
+                }
+                throw error; // Rethrow other errors
+            }
+        }
 
         // Populate response
         const populatedBooking = await Booking.findById(booking._id)

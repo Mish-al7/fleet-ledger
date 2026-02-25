@@ -97,24 +97,28 @@ export async function POST(req) {
             );
         }
 
-        // Fetch the last entry by date to get the last balance
-        const lastEntry = await AdminCashLedger.findOne()
-            .sort({ date: -1, createdAt: -1 })
-            .lean();
+        const newDate = new Date(date);
 
-        const lastBalance = lastEntry ? lastEntry.running_balance : 0;
+        // Find the entry immediately before the new one
+        const previousEntry = await AdminCashLedger.findOne({
+            $or: [
+                { date: { $lt: newDate } },
+                { date: newDate, createdAt: { $lt: new Date() } } // This helps but createdAt isn't set yet. relying on date is safer for "before"
+            ]
+        }).sort({ date: -1, createdAt: -1 });
 
-        // Calculate running balance
+        const previousBalance = previousEntry ? previousEntry.running_balance : 0;
         let runningBalance;
+
         if (type === 'income') {
-            runningBalance = lastBalance + parseFloat(amount);
-        } else { // expense
-            runningBalance = lastBalance - parseFloat(amount);
+            runningBalance = previousBalance + parseFloat(amount);
+        } else {
+            runningBalance = previousBalance - parseFloat(amount);
         }
 
         // Create new entry
         const newEntry = await AdminCashLedger.create({
-            date: new Date(date),
+            date: newDate,
             description,
             type,
             amount: parseFloat(amount),
@@ -122,12 +126,46 @@ export async function POST(req) {
             createdBy: session.user.id
         });
 
+        // Check if there are any entries AFTER this one (backdated insertion)
+        const subsequentEntries = await AdminCashLedger.find({
+            $or: [
+                { date: { $gt: newDate } },
+                { date: newDate, _id: { $ne: newEntry._id }, createdAt: { $gt: newEntry.createdAt } } // It's hard to rely on createdAt for same-millisecond comparison if any, but _id helps
+            ]
+        }).sort({ date: 1, createdAt: 1 });
+
+        if (subsequentEntries.length > 0) {
+            // We inserted a backdated entry, we must recalculate everything after it
+            let currentBalance = runningBalance;
+            let updatedCount = 0;
+
+            for (const entry of subsequentEntries) {
+                if (entry.type === 'income') {
+                    currentBalance += entry.amount;
+                } else {
+                    currentBalance -= entry.amount;
+                }
+
+                // Only update if changed to avoid unnecessary writes, though for safety we can just write
+                if (Math.abs(entry.running_balance - currentBalance) > 0.001) {
+                    entry.running_balance = currentBalance;
+                    await entry.save();
+                    updatedCount++;
+                }
+            }
+
+            // Return with a warning or info that recalculation happened? 
+            // The frontend might want to know to refresh the list if they are looking at it.
+            // But standard behavior is just success.
+        }
+
         // Populate createdBy for response
         await newEntry.populate('createdBy', 'name');
 
         return NextResponse.json({
             success: true,
-            data: newEntry
+            data: newEntry,
+            warning: subsequentEntries.length > 0 ? 'Backdated entry added. Subsequent balances have been recalculated.' : null
         }, { status: 201 });
 
     } catch (error) {

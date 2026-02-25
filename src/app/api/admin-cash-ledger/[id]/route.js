@@ -116,50 +116,82 @@ export async function PUT(req, { params }) {
             return NextResponse.json({ error: 'Entry not found' }, { status: 404 });
         }
 
+        const oldDate = new Date(existingEntry.date);
+        const newDate = new Date(date);
+        const oldAmount = existingEntry.amount;
+        const newAmount = parseFloat(amount);
+        const oldType = existingEntry.type;
+        const newType = type;
+
         // Update the entry
-        existingEntry.date = new Date(date);
+        existingEntry.date = newDate;
         existingEntry.description = description;
-        existingEntry.type = type;
-        existingEntry.amount = parseFloat(amount);
+        existingEntry.type = newType;
+        existingEntry.amount = newAmount;
 
-        // Recalculate running balance for this entry
-        const previousEntry = await AdminCashLedger.findOne({
-            $or: [
-                { date: { $lt: existingEntry.date } },
-                { date: existingEntry.date, createdAt: { $lt: existingEntry.createdAt } }
-            ]
-        }).sort({ date: -1, createdAt: -1 });
+        // We will save it after recalculation loop or right now?
+        // If we save it now, we might mess up the "find previous" if we are not careful.
+        // But we need it saved to be included in the "subsequent" query properly or we handle it manually.
+        // Easier to save it, but we need to identify the "start point" for recalculation.
 
-        const previousBalance = previousEntry ? previousEntry.running_balance : 0;
+        // The recalculation must start from the EARLIER of the two dates (oldDate or newDate).
+        // Anything before that is unaffected.
 
-        if (existingEntry.type === 'income') {
-            existingEntry.running_balance = previousBalance + existingEntry.amount;
-        } else {
-            existingEntry.running_balance = previousBalance - existingEntry.amount;
-        }
+        let recalcStartDate = oldDate < newDate ? oldDate : newDate;
 
         await existingEntry.save();
 
-        // Recalculate all subsequent entries
-        const subsequentEntries = await AdminCashLedger.find({
-            $or: [
-                { date: { $gt: existingEntry.date } },
-                { date: existingEntry.date, createdAt: { $gt: existingEntry.createdAt } }
-            ]
+        // Find the entry strictly BEFORE the recalcStartDate to establish initial balance
+        // Note: multiple entries can have same date.
+        // If we moved the entry, it's now at newDate.
+        // If we moved it Forward (old < new), we need to fill the gap at oldDate.
+        // If we moved it Backward (new < old), we need to inserting it at newDate pushes everything.
+
+        // To be safe and robust:
+        // 1. Find the first entry at or after recalcStartDate.
+        // 2. Find the entry immediately BEFORE that one to get starting balance.
+        // 3. Iterate through ALL entries from recalcStartDate onwards.
+
+        const firstAffectedEntry = await AdminCashLedger.findOne({
+            date: { $gte: recalcStartDate }
         }).sort({ date: 1, createdAt: 1 });
 
-        let currentBalance = existingEntry.running_balance;
+        if (firstAffectedEntry) {
+            // Find balance before this one
+            const previousEntry = await AdminCashLedger.findOne({
+                $or: [
+                    { date: { $lt: firstAffectedEntry.date } },
+                    { date: firstAffectedEntry.date, createdAt: { $lt: firstAffectedEntry.createdAt } }
+                ]
+            }).sort({ date: -1, createdAt: -1 });
 
-        for (const entry of subsequentEntries) {
-            if (entry.type === 'income') {
-                currentBalance = currentBalance + entry.amount;
-            } else {
-                currentBalance = currentBalance - entry.amount;
+            let currentBalance = previousEntry ? previousEntry.running_balance : 0;
+
+            // Fetch all entries from firstAffectedEntry onwards
+            const entriesToRecalc = await AdminCashLedger.find({
+                $or: [
+                    { date: { $gt: firstAffectedEntry.date } },
+                    { date: firstAffectedEntry.date, createdAt: { $gte: firstAffectedEntry.createdAt } } // Include the firstAffected itself
+                ]
+            }).sort({ date: 1, createdAt: 1 });
+
+            for (const entry of entriesToRecalc) {
+                if (entry.type === 'income') {
+                    currentBalance += entry.amount;
+                } else {
+                    currentBalance -= entry.amount;
+                }
+
+                // Update if needed
+                if (Math.abs(entry.running_balance - currentBalance) > 0.001) {
+                    entry.running_balance = currentBalance;
+                    // Mongoose might track this change
+                    await entry.save();
+                }
             }
-            entry.running_balance = currentBalance;
-            await entry.save();
         }
 
+        // Re-fetch to return latest state
         await existingEntry.populate('createdBy', 'name');
 
         return NextResponse.json({

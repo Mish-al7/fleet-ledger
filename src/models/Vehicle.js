@@ -8,6 +8,10 @@ const VehicleSchema = new mongoose.Schema({
         trim: true,
         uppercase: true,
     },
+    nickname: {
+        type: String,
+        trim: true,
+    },
     status: {
         type: String,
         required: true,

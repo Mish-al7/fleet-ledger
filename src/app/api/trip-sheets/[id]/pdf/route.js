@@ -2,8 +2,10 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import dbConnect from '@/lib/dbConnect';
 import TripSheet from '@/models/TripSheet';
+import Settings from '@/models/Settings';
 import { authOptions } from '@/lib/auth';
 import PDFDocument from 'pdfkit';
+import { formatDate } from '@/lib/dateUtils';
 
 export async function GET(request, { params }) {
     try {
@@ -15,10 +17,20 @@ export async function GET(request, { params }) {
         await dbConnect();
         const { id } = await params;
 
-        const tripSheet = await TripSheet.findById(id);
+        const [tripSheet, settings] = await Promise.all([
+            TripSheet.findById(id),
+            Settings.findOne().lean()
+        ]);
+
         if (!tripSheet) {
             return NextResponse.json({ error: 'Trip Sheet not found' }, { status: 404 });
         }
+
+        // Settings fallbacks
+        const companyName = settings?.companyName || 'NEELAMBARI';
+        const tagline = settings?.tagline || 'VACATIONS';
+        const addressLine = settings?.address || '5/243 KADIRUR (PO), THALASSERY 670642';
+        const phoneNumbers = settings?.phoneNumbers || '9562828482 | 8547227022';
 
         // Create PDF
         const doc = new PDFDocument({ margin: 50, size: 'A4' });
@@ -38,11 +50,11 @@ export async function GET(request, { params }) {
         // --- PDF CONTENT START ---
 
         // 1. Header
-        doc.font('Helvetica-Bold').fontSize(24).text('NEELAMBARI', { align: 'center' });
-        doc.fontSize(14).text('VACATIONS', { align: 'center' });
+        doc.font('Helvetica-Bold').fontSize(24).text(companyName, { align: 'center' });
+        doc.fontSize(14).text(tagline, { align: 'center' });
 
         doc.font('Helvetica').fontSize(10).text(
-            '5/243 KADIRUR (PO), THALASSERY 670642 | Mob: 9562828482 | 8547227022',
+            `${addressLine} | Mob: ${phoneNumbers}`,
             { align: 'center' }
         );
 
@@ -62,7 +74,7 @@ export async function GET(request, { params }) {
         // 3. No and Date row
         doc.font('Helvetica').fontSize(12).text(`No. ${tripSheet.trip_sheet_no}`, startX, currentY);
 
-        const dateStr = new Date(tripSheet.trip_sheet_date).toLocaleDateString('en-GB');
+        const dateStr = formatDate(tripSheet.trip_sheet_date);
         doc.text(`Date: ${dateStr}`, startX, currentY, { align: 'right', width: contentWidth });
 
         currentY += 20;
@@ -83,35 +95,11 @@ export async function GET(request, { params }) {
             }
         }
 
-        // Guest Name
-        drawRow(currentY, 'Guest Name', tripSheet.guest_name);
+        // Customer Name
+        drawRow(currentY, 'Customer Name', tripSheet.guest_name);
         currentY += rowHeight;
 
-        // Vehicle Type & Reg No (Split Cell)
-        doc.rect(startX, currentY, col1Width, rowHeight).stroke();
-        doc.font('Helvetica').text('Type of Vehicle', startX + 5, currentY + 10);
-
-        // Split second column
-        const halfCol2 = col2Width / 2;
-        doc.rect(startX + col1Width, currentY, halfCol2, rowHeight).stroke(); // Type Value
-        doc.font('Helvetica-Bold').text(tripSheet.vehicle_type || '', startX + col1Width + 5, currentY + 10);
-
-        doc.rect(startX + col1Width + halfCol2, currentY, halfCol2, rowHeight).stroke(); // Reg No + Value
-        // Label "Reg. No." inside the cell?
-        // Let's format it like "Reg. No. KL-XX-YYYY" or use a smaller label box
-        // Based on PDF: Type of Vehicle [    ] Reg. No. [      ]
-        // Let's actually split it: 
-        // Label: Type of Vehicle | Value | Reg. No. | Value
-        // But my helper is rigid. Let's draw manual for this row.
-
-        // Redraw this row logic to match PDF better
-        // The PDF has: [Guest Name label] [Guest Name value] (Full width)
-        // [Type of Vehicle] [Value] [Reg. No.] [Value]
-
-        // Let's overwrite the rects for this row
-        // Clear previous drawRow attempt mentally (it's stream, so I just won't call it)
-        // Re-implementing this specific row:
-
+        // Vehicle Type & Vehicle Number row
         // Cell 1: Label "Type of Vehicle"
         doc.rect(startX, currentY, col1Width, rowHeight).stroke();
         doc.font('Helvetica').text('Type of Vehicle', startX + 5, currentY + 10);
@@ -121,10 +109,10 @@ export async function GET(request, { params }) {
         doc.rect(startX + col1Width, currentY, typeWidth, rowHeight).stroke();
         doc.font('Helvetica-Bold').text(tripSheet.vehicle_type || '', startX + col1Width + 5, currentY + 10);
 
-        // Cell 3: Label "Reg. No."
-        const regLabelWidth = 80;
+        // Cell 3: Label "Vehicle Number"
+        const regLabelWidth = 90;
         doc.rect(startX + col1Width + typeWidth, currentY, regLabelWidth, rowHeight).stroke();
-        doc.font('Helvetica').text('Reg. No.', startX + col1Width + typeWidth + 5, currentY + 10);
+        doc.font('Helvetica').text('Vehicle Number', startX + col1Width + typeWidth + 5, currentY + 10);
 
         // Cell 4: Value
         const regValueWidth = contentWidth - col1Width - typeWidth - regLabelWidth;
@@ -193,60 +181,54 @@ export async function GET(request, { params }) {
         // Let's try to match the visuals of:
         // | Garage KM | <value> | Pick-Up KM | <value> |
 
-        // Garage KM / Pick-Up KM
-        drawTwoColRow(currentY, 'Garage KM', tripSheet.garage_km_start, 'Pick-Up KM', tripSheet.pickup_km);
+        // Pick-Up KM / Pick-Up Time
+        drawTwoColRow(currentY, 'Pick-Up KM', tripSheet.pickup_km, 'Pick-Up Time', tripSheet.pickup_time);
         currentY += rowHeight;
 
-        // Garage Time / Pick-Up Time
-        drawTwoColRow(currentY, 'Garage Time', tripSheet.garage_time_start, 'Pick-Up Time', tripSheet.pickup_time);
+        // Drop KM / Drop Time
+        drawTwoColRow(currentY, 'Drop KM', tripSheet.drop_km, 'Drop Time', tripSheet.drop_time);
         currentY += rowHeight;
 
-        // Drop KM / Garage KM (End)
-        drawTwoColRow(currentY, 'Drop KM', tripSheet.drop_km, 'Garage KM', tripSheet.garage_km_end);
-        currentY += rowHeight;
-
-        // Drop Time / Garage Time (End)
-        drawTwoColRow(currentY, 'Drop Time', tripSheet.drop_time, 'Garage Time', tripSheet.garage_time_end);
+        // Total KM
+        drawRow(currentY, 'Total KM', tripSheet.total_km);
         currentY += rowHeight;
 
         // Starting Date / Closing Date
-        const startD = tripSheet.starting_date ? new Date(tripSheet.starting_date).toLocaleDateString('en-GB') : '';
-        const closeD = tripSheet.closing_date ? new Date(tripSheet.closing_date).toLocaleDateString('en-GB') : '';
+        const startD = tripSheet.starting_date ? formatDate(tripSheet.starting_date) : '';
+        const closeD = tripSheet.closing_date ? formatDate(tripSheet.closing_date) : '';
         drawTwoColRow(currentY, 'Starting Date', startD, 'Closing Date', closeD);
         currentY += rowHeight;
 
-        // Total Bill Amount
-        // Full width label ??? Or Label | Value
-        // PDF: TOTAL BILL AMOUNT Rs. (spanning mostly) | Value
-        // Let's do: Label (70%) | Value (30%)
-
+        // Total Bill Amount and Advance Amount (Two columns)
         currentY += 5; // tiny gap
-        const billLabelW = contentWidth * 0.7;
-        const billValW = contentWidth - billLabelW;
+        const amountLabelW = 150;
+        const amountValW = (contentWidth / 2) - amountLabelW;
 
-        doc.rect(startX, currentY, billLabelW, rowHeight).stroke();
+        // Left side: Total Bill Amount
+        doc.rect(startX, currentY, amountLabelW, rowHeight).stroke();
         doc.font('Helvetica-Bold').text('TOTAL BILL AMOUNT Rs.', startX + 5, currentY + 10);
 
-        doc.rect(startX + billLabelW, currentY, billValW, rowHeight).stroke();
+        doc.rect(startX + amountLabelW, currentY, amountValW, rowHeight).stroke();
         if (tripSheet.total_bill_amount) {
-            doc.text(String(tripSheet.total_bill_amount), startX + billLabelW + 5, currentY + 10);
+            doc.text(String(tripSheet.total_bill_amount), startX + amountLabelW + 5, currentY + 10);
+        }
+
+        // Right side: Advance Amount
+        const rightStartX = startX + (contentWidth / 2);
+        doc.rect(rightStartX, currentY, amountLabelW, rowHeight).stroke();
+        doc.font('Helvetica-Bold').text('ADVANCE AMOUNT Rs.', rightStartX + 5, currentY + 10);
+
+        doc.rect(rightStartX + amountLabelW, currentY, amountValW, rowHeight).stroke();
+        if (tripSheet.advance_amount) {
+            doc.text(String(tripSheet.advance_amount), rightStartX + amountLabelW + 5, currentY + 10);
         }
 
         currentY += rowHeight + 5;
 
-        // Signatures
-        // Box 1: Driver's Name & Signature
-        // Box 2: Customer Name & Signature
-        const sigBoxWidth = contentWidth / 2;
-        const sigBoxHeight = 80;
-
-        doc.rect(startX, currentY, sigBoxWidth, sigBoxHeight).stroke();
-        doc.font('Helvetica').text("Driver's Name: " + (tripSheet.driver_name || ''), startX + 5, currentY + 5);
-        doc.text("Signature:", startX + 5, currentY + 40);
-
-        doc.rect(startX + sigBoxWidth, currentY, sigBoxWidth, sigBoxHeight).stroke();
-        doc.text("Customer Name: " + (tripSheet.customer_name || ''), startX + sigBoxWidth + 5, currentY + 5);
-        doc.text("Signature:", startX + sigBoxWidth + 5, currentY + 40);
+        // Driver Name
+        const nameBoxHeight = 50;
+        doc.rect(startX, currentY, contentWidth, nameBoxHeight).stroke();
+        doc.font('Helvetica').text("Driver's Name: " + (tripSheet.driver_name || ''), startX + 5, currentY + 15);
 
 
         // --- PDF CONTENT END ---

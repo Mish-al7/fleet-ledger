@@ -137,15 +137,27 @@ BookingSchema.statics.generateBookingNo = async function () {
     const today = new Date();
     const dateStr = today.toISOString().slice(0, 10).replace(/-/g, '');
 
-    // Find count of bookings created today
+    // Find the last booking created today by sorting booking_no descending
+    // We use a regex for the booking_no to be safe, or date range on createdAt
+    // Using createdAt range is safer as booking_no contains the date
     const startOfDay = new Date(today.setHours(0, 0, 0, 0));
     const endOfDay = new Date(today.setHours(23, 59, 59, 999));
 
-    const count = await this.countDocuments({
+    const lastBooking = await this.findOne({
         createdAt: { $gte: startOfDay, $lte: endOfDay }
-    });
+    }).sort({ booking_no: -1 }).select('booking_no').lean();
 
-    const sequence = String(count + 1).padStart(3, '0');
+    let sequence = '001';
+    if (lastBooking && lastBooking.booking_no) {
+        const parts = lastBooking.booking_no.split('-');
+        if (parts.length === 3) {
+            const lastSequence = parseInt(parts[2], 10);
+            if (!isNaN(lastSequence)) {
+                sequence = String(lastSequence + 1).padStart(3, '0');
+            }
+        }
+    }
+
     return `BK-${dateStr}-${sequence}`;
 };
 
@@ -205,7 +217,7 @@ BookingSchema.statics.checkVehicleAvailability = async function (vehicleId, star
         available: timeConflicts.length === 0,
         conflicts: timeConflicts.map(b => ({
             booking_no: b.booking_no,
-            dates: `${new Date(b.journey_start_date).toLocaleDateString()} - ${new Date(b.journey_return_date).toLocaleDateString()}`,
+            dates: `${new Date(b.journey_start_date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })} - ${new Date(b.journey_return_date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}`,
             times: `${b.trip_start_time} - ${b.trip_end_time}`,
             status: b.status
         }))
