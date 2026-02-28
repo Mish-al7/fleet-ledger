@@ -87,4 +87,6 @@ mongodb-database-tools*
 mongo*
 mongod*
 
+scripts/*
+
 
