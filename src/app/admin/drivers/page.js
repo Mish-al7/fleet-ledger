@@ -1,7 +1,60 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Users, Plus, Check, X, Shield, User } from 'lucide-react';
+import { Users, Plus, Check, X, Shield, User, Loader2 } from 'lucide-react';
+
+// Define UserCard OUTSIDE to prevent focus loss issues on re-render
+const UserCard = ({ user, icon: Icon, colorClass, resettingId, setResettingId, newPassword, setNewPassword, handleResetPassword, resetStatus }) => (
+    <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 hover:border-slate-700 transition-all">
+        <div className="flex items-start gap-4">
+            <div className={`p-3 rounded-lg ${colorClass}`}>
+                <Icon size={24} />
+            </div>
+            <div className="flex-1">
+                <h3 className="font-bold text-white">{user.name}</h3>
+                <p className="text-sm text-slate-400 mb-3">{user.email}</p>
+
+                {resettingId === user._id ? (
+                    <div className="space-y-2 mt-2 p-3 bg-slate-950 rounded-lg border border-slate-800">
+                        <input
+                            type="password"
+                            placeholder="New Password"
+                            autoFocus
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            className="w-full text-xs px-2 py-1.5 bg-slate-900 border border-slate-700 rounded text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        />
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => handleResetPassword(user._id)}
+                                className="flex-1 text-[10px] font-bold bg-blue-600 text-white rounded py-1 px-2 hover:bg-blue-500 transition-colors"
+                            >
+                                {resetStatus === 'Saving...' ? '...' : 'Save'}
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setResettingId(null);
+                                    setNewPassword('');
+                                }}
+                                className="text-[10px] font-bold bg-slate-700 text-slate-300 rounded py-1 px-2 hover:bg-slate-600 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                        {resetStatus && <p className={`text-[10px] text-center ${resetStatus === 'Success!' ? 'text-emerald-400' : 'text-blue-400'}`}>{resetStatus}</p>}
+                    </div>
+                ) : (
+                    <button
+                        onClick={() => setResettingId(user._id)}
+                        className="text-xs text-blue-500 hover:text-blue-400 font-semibold flex items-center gap-1 transition-colors"
+                    >
+                        Reset Password
+                    </button>
+                )}
+            </div>
+        </div>
+    </div>
+);
 
 export default function DriversPage() {
     const [users, setUsers] = useState([]);
@@ -9,6 +62,9 @@ export default function DriversPage() {
     const [showForm, setShowForm] = useState(false);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
+    const [resettingId, setResettingId] = useState(null);
+    const [newPassword, setNewPassword] = useState('');
+    const [resetStatus, setResetStatus] = useState('');
 
     const [formData, setFormData] = useState({
         name: '',
@@ -62,7 +118,39 @@ export default function DriversPage() {
         }
     };
 
-    if (loading) return <div className="text-slate-500">Loading users...</div>;
+    const handleResetPassword = async (id) => {
+        if (!newPassword || newPassword.length < 6) {
+            setResetStatus('Min 6 chars');
+            return;
+        }
+        setResetStatus('Saving...');
+        try {
+            const res = await fetch(`/api/users/${id}/reset-password`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ newPassword })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setResetStatus('Success!');
+                setTimeout(() => {
+                    setResettingId(null);
+                    setNewPassword('');
+                    setResetStatus('');
+                }, 1500);
+            } else {
+                setResetStatus(data.error || 'Error');
+            }
+        } catch (err) {
+            setResetStatus('Failed');
+        }
+    };
+
+    if (loading) return (
+        <div className="min-h-screen flex items-center justify-center bg-slate-950">
+            <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+        </div>
+    );
 
     const drivers = users.filter(u => u.role === 'driver');
     const admins = users.filter(u => u.role === 'admin');
@@ -71,22 +159,21 @@ export default function DriversPage() {
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-2xl font-bold text-white">Drivers</h1>
-                    <p className="text-slate-400 text-sm">Manage driver accounts</p>
+                    <h1 className="text-2xl font-bold text-white">Drivers & Admins</h1>
+                    <p className="text-slate-400 text-sm">Manage accounts and reset passwords</p>
                 </div>
 
                 <button
                     onClick={() => setShowForm(!showForm)}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-all active:scale-95"
                 >
                     {showForm ? <X size={20} /> : <Plus size={20} />}
-                    <span>{showForm ? 'Cancel' : 'Add Driver'}</span>
+                    <span className="font-semibold">{showForm ? 'Cancel' : 'Add Driver'}</span>
                 </button>
             </div>
 
-            {/* Add Driver Form */}
             {showForm && (
-                <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+                <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 animate-in fade-in slide-in-from-top-4 duration-300">
                     <h3 className="text-lg font-bold text-white mb-4">Add New Driver</h3>
 
                     {error && (
@@ -96,37 +183,39 @@ export default function DriversPage() {
                     )}
 
                     <form onSubmit={handleSubmit} className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-2">
-                                Driver Name
-                            </label>
-                            <input
-                                type="text"
-                                value={formData.name}
-                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                required
-                                placeholder="John Doe"
-                                className="w-full px-4 py-3 bg-slate-950 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
+                        <div className="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-slate-300 mb-2">
+                                    Driver Name
+                                </label>
+                                <input
+                                    type="text"
+                                    value={formData.name}
+                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                    required
+                                    placeholder="John Doe"
+                                    className="w-full px-4 py-3 bg-slate-950 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-300 mb-2">
+                                    Email Address
+                                </label>
+                                <input
+                                    type="email"
+                                    value={formData.email}
+                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                    required
+                                    placeholder="driver@example.com"
+                                    className="w-full px-4 py-3 bg-slate-950 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                            </div>
                         </div>
 
                         <div>
                             <label className="block text-sm font-medium text-slate-300 mb-2">
-                                Email
-                            </label>
-                            <input
-                                type="email"
-                                value={formData.email}
-                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                required
-                                placeholder="driver@example.com"
-                                className="w-full px-4 py-3 bg-slate-950 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-2">
-                                Password
+                                Initial Password
                             </label>
                             <input
                                 type="password"
@@ -142,10 +231,10 @@ export default function DriversPage() {
                         <button
                             type="submit"
                             disabled={saving}
-                            className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-lg disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+                            className="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg disabled:opacity-50 transition-all flex items-center justify-center gap-2"
                         >
                             {saving ? (
-                                <span>Creating...</span>
+                                <Loader2 className="w-5 h-5 animate-spin" />
                             ) : (
                                 <>
                                     <Check size={20} />
@@ -157,25 +246,22 @@ export default function DriversPage() {
                 </div>
             )}
 
-            {/* Drivers List */}
             <div>
-                <h2 className="text-lg font-semibold text-white mb-4">Drivers ({drivers.length})</h2>
+                <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-widest mb-4">Drivers ({drivers.length})</h2>
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                     {drivers.map(driver => (
-                        <div
+                        <UserCard
                             key={driver._id}
-                            className="bg-slate-900 border border-slate-800 rounded-xl p-6 hover:border-slate-700 transition-all"
-                        >
-                            <div className="flex items-center gap-4">
-                                <div className="p-3 bg-blue-500/10 rounded-lg text-blue-400">
-                                    <User size={24} />
-                                </div>
-                                <div className="flex-1">
-                                    <h3 className="font-bold text-white">{driver.name}</h3>
-                                    <p className="text-sm text-slate-400">{driver.email}</p>
-                                </div>
-                            </div>
-                        </div>
+                            user={driver}
+                            icon={User}
+                            colorClass="bg-blue-500/10 text-blue-400"
+                            resettingId={resettingId}
+                            setResettingId={setResettingId}
+                            newPassword={newPassword}
+                            setNewPassword={setNewPassword}
+                            handleResetPassword={handleResetPassword}
+                            resetStatus={resetStatus}
+                        />
                     ))}
 
                     {drivers.length === 0 && (
@@ -186,26 +272,23 @@ export default function DriversPage() {
                 </div>
             </div>
 
-            {/* Admins List */}
             {admins.length > 0 && (
                 <div>
-                    <h2 className="text-lg font-semibold text-white mb-4">Admins ({admins.length})</h2>
+                    <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-widest mb-4">Admins ({admins.length})</h2>
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                         {admins.map(admin => (
-                            <div
+                            <UserCard
                                 key={admin._id}
-                                className="bg-slate-900 border border-emerald-800/30 rounded-xl p-6"
-                            >
-                                <div className="flex items-center gap-4">
-                                    <div className="p-3 bg-emerald-500/10 rounded-lg text-emerald-400">
-                                        <Shield size={24} />
-                                    </div>
-                                    <div className="flex-1">
-                                        <h3 className="font-bold text-white">{admin.name}</h3>
-                                        <p className="text-sm text-slate-400">{admin.email}</p>
-                                    </div>
-                                </div>
-                            </div>
+                                user={admin}
+                                icon={Shield}
+                                colorClass="bg-emerald-500/10 text-emerald-400"
+                                resettingId={resettingId}
+                                setResettingId={setResettingId}
+                                newPassword={newPassword}
+                                setNewPassword={setNewPassword}
+                                handleResetPassword={handleResetPassword}
+                                resetStatus={resetStatus}
+                            />
                         ))}
                     </div>
                 </div>

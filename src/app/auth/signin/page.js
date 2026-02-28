@@ -108,6 +108,16 @@ function SignInContent() {
                             </>
                         )}
                     </button>
+
+                    <div className="text-center mt-4">
+                        <button
+                            type="button"
+                            onClick={() => router.push('/auth/forgot-password')}
+                            className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                        >
+                            Forgot Password?
+                        </button>
+                    </div>
                 </form>
 
 

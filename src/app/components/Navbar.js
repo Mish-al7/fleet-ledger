@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LogOut, PlusCircle, CalendarPlus, FileText } from 'lucide-react';
+import { LogOut, PlusCircle, CalendarPlus, FileText, Lock } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 
 export default function Navbar() {
@@ -27,6 +27,11 @@ export default function Navbar() {
                 <Link href="/bookings" className={`flex flex-col items-center gap-1 ${isActive('/bookings')}`}>
                     <FileText size={24} />
                     <span className="text-xs font-medium">Bookings</span>
+                </Link>
+
+                <Link href="/profile/change-password" className={`flex flex-col items-center gap-1 ${isActive('/profile/change-password')}`}>
+                    <Lock size={24} />
+                    <span className="text-xs font-medium">Password</span>
                 </Link>
 
                 <button
