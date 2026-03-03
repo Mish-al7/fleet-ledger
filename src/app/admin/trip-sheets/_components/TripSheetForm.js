@@ -222,8 +222,8 @@ export default function TripSheetForm({ initialData = {}, isEditing = false }) {
                         <div className="space-y-4">
                             <h4 className="text-sm font-medium text-emerald-400 uppercase tracking-wide">Time</h4>
                             <div className="grid grid-cols-2 gap-4">
-                                <InputGroup label="Pick-Up Time" name="pickup_time" placeholder="HH:MM" value={formData.pickup_time} onChange={handleChange} />
-                                <InputGroup label="Drop Time" name="drop_time" placeholder="HH:MM" value={formData.drop_time} onChange={handleChange} />
+                                <InputGroup label="Pick-Up Time" name="pickup_time" type="time" placeholder="HH:MM" value={formData.pickup_time} onChange={handleChange} />
+                                <InputGroup label="Drop Time" name="drop_time" type="time" placeholder="HH:MM" value={formData.drop_time} onChange={handleChange} />
                             </div>
                         </div>
                     </div>

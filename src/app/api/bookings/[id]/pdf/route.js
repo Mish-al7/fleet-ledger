@@ -5,7 +5,7 @@ import Booking from '@/models/Booking';
 import Settings from '@/models/Settings';
 import { authOptions } from '@/lib/auth';
 import PDFDocument from 'pdfkit';
-import { formatDate } from '@/lib/dateUtils';
+import { formatDate, formatTimeTo24Hour } from '@/lib/dateUtils';
 
 export async function GET(request, { params }) {
     try {
@@ -138,7 +138,7 @@ export async function GET(request, { params }) {
         drawTwoColRow(currentY, 'Start Date', startD, 'Return Date', endD);
         currentY += rowHeight;
 
-        drawTwoColRow(currentY, 'Start Time', booking.trip_start_time, 'End Time', booking.trip_end_time);
+        drawTwoColRow(currentY, 'Start Time', formatTimeTo24Hour(booking.trip_start_time), 'End Time', formatTimeTo24Hour(booking.trip_end_time));
         currentY += rowHeight;
 
         // Additional Info

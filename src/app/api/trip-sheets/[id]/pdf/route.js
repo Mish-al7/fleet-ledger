@@ -5,7 +5,7 @@ import TripSheet from '@/models/TripSheet';
 import Settings from '@/models/Settings';
 import { authOptions } from '@/lib/auth';
 import PDFDocument from 'pdfkit';
-import { formatDate } from '@/lib/dateUtils';
+import { formatDate, formatTimeTo24Hour } from '@/lib/dateUtils';
 
 export async function GET(request, { params }) {
     try {
@@ -182,11 +182,11 @@ export async function GET(request, { params }) {
         // | Garage KM | <value> | Pick-Up KM | <value> |
 
         // Pick-Up KM / Pick-Up Time
-        drawTwoColRow(currentY, 'Pick-Up KM', tripSheet.pickup_km, 'Pick-Up Time', tripSheet.pickup_time);
+        drawTwoColRow(currentY, 'Pick-Up KM', tripSheet.pickup_km, 'Pick-Up Time', formatTimeTo24Hour(tripSheet.pickup_time));
         currentY += rowHeight;
 
         // Drop KM / Drop Time
-        drawTwoColRow(currentY, 'Drop KM', tripSheet.drop_km, 'Drop Time', tripSheet.drop_time);
+        drawTwoColRow(currentY, 'Drop KM', tripSheet.drop_km, 'Drop Time', formatTimeTo24Hour(tripSheet.drop_time));
         currentY += rowHeight;
 
         // Total KM

@@ -5,7 +5,7 @@ import { Calendar as CalendarIcon, MapPin, Clock, Car, FileText, Eye, Check, X, 
 import BookingEditModal from './BookingEditModal';
 import BookingCreateModal from './BookingCreateModal';
 import BookingCalendar from '@/app/components/BookingCalendar';
-import { formatDate } from '@/lib/dateUtils';
+import { formatDate, formatTimeTo24Hour } from '@/lib/dateUtils';
 
 // Status Badge Component
 const StatusBadge = ({ status }) => {
@@ -84,7 +84,7 @@ const BookingDetailModal = ({ booking, onClose, onApprove, onReject, actionLoadi
                         <div className="grid grid-cols-4 gap-4 text-sm">
                             <div><span className="text-slate-500">Start Date:</span><br /><span className="text-white">{formatDate(booking.journey_start_date)}</span></div>
                             <div><span className="text-slate-500">Return Date:</span><br /><span className="text-white">{formatDate(booking.journey_return_date)}</span></div>
-                            <div><span className="text-slate-500">Time:</span><br /><span className="text-white">{booking.trip_start_time} - {booking.trip_end_time}</span></div>
+                            <div><span className="text-slate-500">Time:</span><br /><span className="text-white">{formatTimeTo24Hour(booking.trip_start_time)} - {formatTimeTo24Hour(booking.trip_end_time)}</span></div>
                             <div><span className="text-slate-500">Days / KM:</span><br /><span className="text-white">{booking.total_days} days / {booking.total_kilometers || 0} km</span></div>
                         </div>
                     </div>
