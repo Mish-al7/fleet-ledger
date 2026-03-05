@@ -11,6 +11,13 @@ export default function PersonalLedgerPage() {
     const [showAddModal, setShowAddModal] = useState(false);
     const [editingEntry, setEditingEntry] = useState(null);
     const [deletingId, setDeletingId] = useState(null);
+    const [submitting, setSubmitting] = useState(false);
+
+    // Custom Ledger State
+    const [ledgers, setLedgers] = useState([]);
+    const [selectedLedger, setSelectedLedger] = useState('main'); // 'main' or ledger._id
+    const [showCreateLedgerModal, setShowCreateLedgerModal] = useState(false);
+    const [newLedgerName, setNewLedgerName] = useState('');
 
     // Filter state
     const [startDate, setStartDate] = useState('');
@@ -27,11 +34,25 @@ export default function PersonalLedgerPage() {
         amount: ''
     });
 
+    const fetchLedgers = async () => {
+        try {
+            const res = await fetch('/api/custom-ledgers');
+            const data = await res.json();
+            if (data.success) {
+                setLedgers(data.data);
+            }
+        } catch (error) {
+            console.error('Error fetching ledgers:', error);
+        }
+    };
+
     // Fetch entries
-    const fetchEntries = async (filterParams = {}) => {
+    const fetchEntries = async (filterParams = {}, ledgerId = selectedLedger) => {
         try {
             setLoading(true);
-            let url = '/api/admin-cash-ledger';
+            let url = ledgerId === 'main'
+                ? '/api/admin-cash-ledger'
+                : `/api/custom-ledgers/${ledgerId}/entries`;
 
             const params = new URLSearchParams();
             if (filterParams.startDate) params.append('startDate', filterParams.startDate);
@@ -45,8 +66,8 @@ export default function PersonalLedgerPage() {
             const data = await res.json();
 
             if (data.success) {
-                setEntries(data.data.entries);
-                setCurrentBalance(data.data.currentBalance);
+                setEntries(data.data.entries || data.data); // data.data.entries for custom ledger, data.data for old main route maybe? 
+                setCurrentBalance(data.data.currentBalance || 0);
             }
         } catch (error) {
             console.error('Error fetching entries:', error);
@@ -56,8 +77,13 @@ export default function PersonalLedgerPage() {
     };
 
     useEffect(() => {
-        fetchEntries();
+        fetchLedgers();
     }, []);
+
+    useEffect(() => {
+        fetchEntries({ startDate, endDate }, selectedLedger);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedLedger]);
 
     // Apply filter
     const handleApplyFilter = () => {
@@ -128,7 +154,11 @@ export default function PersonalLedgerPage() {
 
         try {
             setDeletingId(id);
-            const res = await fetch(`/api/admin-cash-ledger/${id}`, {
+            const url = selectedLedger === 'main'
+                ? `/api/admin-cash-ledger/${id}`
+                : `/api/custom-ledgers/${selectedLedger}/entries/${id}`;
+
+            const res = await fetch(url, {
                 method: 'DELETE'
             });
 
@@ -137,9 +167,9 @@ export default function PersonalLedgerPage() {
             if (data.success) {
                 // Refresh entries
                 if (isFiltered) {
-                    fetchEntries({ startDate, endDate });
+                    fetchEntries({ startDate, endDate }, selectedLedger);
                 } else {
-                    fetchEntries();
+                    fetchEntries({}, selectedLedger);
                 }
             } else {
                 alert(data.error || 'Failed to delete entry');
@@ -152,23 +182,32 @@ export default function PersonalLedgerPage() {
         }
     };
 
-    // Handle form submit (Create or Update)
+    // Handle form submit (Create or Update Entry)
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setSubmitting(true);
 
         try {
             let res;
 
             if (editingEntry) {
                 // Update existing entry
-                res = await fetch(`/api/admin-cash-ledger/${editingEntry._id}`, {
+                const url = selectedLedger === 'main'
+                    ? `/api/admin-cash-ledger/${editingEntry._id}`
+                    : `/api/custom-ledgers/${selectedLedger}/entries/${editingEntry._id}`;
+
+                res = await fetch(url, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(formData)
                 });
             } else {
                 // Create new entry
-                res = await fetch('/api/admin-cash-ledger', {
+                const url = selectedLedger === 'main'
+                    ? '/api/admin-cash-ledger'
+                    : `/api/custom-ledgers/${selectedLedger}/entries`;
+
+                res = await fetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(formData)
@@ -194,9 +233,9 @@ export default function PersonalLedgerPage() {
 
                 // Refresh entries
                 if (isFiltered) {
-                    fetchEntries({ startDate, endDate });
+                    fetchEntries({ startDate, endDate }, selectedLedger);
                 } else {
-                    fetchEntries();
+                    fetchEntries({}, selectedLedger);
                 }
             } else {
                 alert(data.error || `Failed to ${editingEntry ? 'update' : 'add'} entry`);
@@ -204,6 +243,59 @@ export default function PersonalLedgerPage() {
         } catch (error) {
             console.error(`Error ${editingEntry ? 'updating' : 'adding'} entry:`, error);
             alert(`Failed to ${editingEntry ? 'update' : 'add'} entry`);
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    // Handle Create Ledger
+    const handleCreateLedger = async (e) => {
+        e.preventDefault();
+        try {
+            const res = await fetch('/api/custom-ledgers', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: newLedgerName })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                setShowCreateLedgerModal(false);
+                setNewLedgerName('');
+                await fetchLedgers();
+                setSelectedLedger(data.data._id); // Automatically switch to the newly created ledger
+            } else {
+                alert(data.error || 'Failed to create ledger');
+            }
+        } catch (error) {
+            console.error('Error creating ledger:', error);
+            alert('Failed to create ledger');
+        }
+    };
+
+    // Handle Delete Ledger
+    const handleDeleteLedger = async (ledgerId) => {
+        if (!confirm('Are you sure you want to delete this entire ledger and all its entries? This action cannot be undone.')) {
+            return;
+        }
+
+        try {
+            const res = await fetch(`/api/custom-ledgers/${ledgerId}`, {
+                method: 'DELETE'
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                if (selectedLedger === ledgerId) {
+                    setSelectedLedger('main');
+                }
+                fetchLedgers();
+            } else {
+                alert(data.error || 'Failed to delete ledger');
+            }
+        } catch (error) {
+            console.error('Error deleting ledger:', error);
+            alert('Failed to delete ledger');
         }
     };
 
@@ -236,23 +328,47 @@ export default function PersonalLedgerPage() {
             </div>
 
             {/* Actions Bar */}
-            <div className="flex flex-col md:flex-row gap-3 mb-4">
-                {/* Add Entry Button */}
-                <button
-                    onClick={() => setShowAddModal(true)}
-                    className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-all shadow"
-                >
-                    <PlusCircle size={18} />
-                    Add Entry
-                </button>
+            <div className="flex flex-col lg:flex-row gap-4 mb-6 items-stretch lg:items-center">
+                {/* Ledger Management Group */}
+                <div className="flex items-center gap-3 bg-slate-900 border border-slate-800 p-1.5 rounded-xl shadow-inner">
+                    <select
+                        value={selectedLedger}
+                        onChange={(e) => setSelectedLedger(e.target.value)}
+                        className="bg-slate-950 border border-slate-700 text-white rounded-lg px-3 py-1.5 font-medium focus:outline-none focus:border-blue-500 shadow-sm text-sm"
+                    >
+                        <option value="main" className="font-semibold">Main Cash Ledger</option>
+                        {ledgers.length > 0 && <optgroup label="Custom Ledgers" />}
+                        {ledgers.map(l => (
+                            <option key={l._id} value={l._id}>{l.name}</option>
+                        ))}
+                    </select>
+
+                    <button
+                        onClick={() => setShowCreateLedgerModal(true)}
+                        className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold transition-all shadow-md active:scale-95"
+                    >
+                        <PlusCircle size={14} />
+                        Add New Ledger
+                    </button>
+
+                    {selectedLedger !== 'main' && (
+                        <button
+                            onClick={() => handleDeleteLedger(selectedLedger)}
+                            className="p-1.5 text-red-500 hover:text-white hover:bg-red-600 rounded-lg transition-colors border border-transparent hover:border-red-500"
+                            title="Delete Ledger"
+                        >
+                            <Trash2 size={16} />
+                        </button>
+                    )}
+                </div>
 
                 {/* Filter Section */}
-                <div className="flex flex-wrap items-center gap-3 bg-slate-900/50 p-2 rounded-xl border border-slate-800 flex-1">
+                <div className="flex flex-nowrap items-center gap-2 bg-slate-900/50 p-1.5 rounded-xl border border-slate-800 flex-1 overflow-x-auto no-scrollbar shadow-inner">
                     {/* Year Dropdown */}
                     <select
                         value={selectedYear}
                         onChange={(e) => handleYearChange(e.target.value)}
-                        className="bg-slate-950 text-white text-sm border border-slate-700 rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500"
+                        className="bg-slate-950 text-white text-xs border border-slate-700 rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500 min-w-[70px]"
                     >
                         {[2024, 2025, 2026, 2027].map(y => (
                             <option key={y} value={y}>{y}</option>
@@ -263,20 +379,20 @@ export default function PersonalLedgerPage() {
                     <select
                         value={selectedMonth}
                         onChange={(e) => handleMonthChange(e.target.value)}
-                        className="bg-slate-950 text-white text-sm border border-slate-700 rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500"
+                        className="bg-slate-950 text-white text-xs border border-slate-700 rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500 min-w-[100px]"
                     >
                         <option value="">All Months</option>
                         {Array.from({ length: 12 }, (_, i) => {
                             const m = (i + 1).toString().padStart(2, '0');
-                            const name = new Date(2000, i).toLocaleString('default', { month: 'long' });
+                            const name = new Date(2000, i).toLocaleString('default', { month: 'short' });
                             return <option key={m} value={m}>{name}</option>;
                         })}
                     </select>
 
-                    <div className="hidden md:flex items-center text-slate-700 px-1">|</div>
+                    <div className="flex items-center text-slate-700 px-1 opacity-50">|</div>
 
                     {/* Custom Date Range */}
-                    <div className="flex items-center gap-2 text-xs text-slate-500">
+                    <div className="flex items-center gap-1.5 text-[10px] text-slate-500">
                         <input
                             type="date"
                             value={startDate}
@@ -285,9 +401,9 @@ export default function PersonalLedgerPage() {
                                 setSelectedMonth('');
                                 setIsFiltered(true);
                             }}
-                            className="bg-slate-950 text-white border border-slate-700 rounded-lg px-2 py-1 focus:outline-none"
+                            className="bg-slate-950 text-white border border-slate-700 rounded-lg px-1.5 py-1 focus:outline-none w-28 text-[11px]"
                         />
-                        <span>to</span>
+                        <span className="opacity-50">to</span>
                         <input
                             type="date"
                             value={endDate}
@@ -296,29 +412,37 @@ export default function PersonalLedgerPage() {
                                 setSelectedMonth('');
                                 setIsFiltered(true);
                             }}
-                            className="bg-slate-950 text-white border border-slate-700 rounded-lg px-2 py-1 focus:outline-none"
+                            className="bg-slate-950 text-white border border-slate-700 rounded-lg px-1.5 py-1 focus:outline-none w-28 text-[11px]"
                         />
                     </div>
 
-                    <div className="flex gap-2 ml-auto">
+                    <div className="flex gap-1.5 ml-auto pl-2 border-l border-slate-800">
                         <button
                             onClick={handleApplyFilter}
-                            className="px-3 py-1.5 text-xs bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-medium transition-all flex items-center gap-2 border border-slate-700"
+                            className="px-3 py-1.5 text-[11px] bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-semibold transition-all flex items-center gap-1.5 border border-slate-700 active:scale-95 whitespace-nowrap"
                         >
-                            <Filter size={14} />
+                            <Filter size={12} />
                             Apply
                         </button>
                         {isFiltered && (
                             <button
                                 onClick={handleClearFilter}
-                                className="px-3 py-1.5 text-xs bg-red-600/20 hover:bg-red-600/30 text-red-400 rounded-lg font-medium transition-all flex items-center gap-2 border border-red-500/30"
+                                className="px-2 py-1.5 text-[11px] bg-red-600/10 hover:bg-red-600/20 text-red-500 rounded-lg font-medium transition-all flex items-center gap-1.5 border border-red-500/20 active:scale-95"
                             >
-                                <X size={14} />
-                                Clear
+                                <X size={12} />
                             </button>
                         )}
                     </div>
                 </div>
+
+                {/* Add Entry Button */}
+                <button
+                    onClick={() => setShowAddModal(true)}
+                    className="flex items-center justify-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold transition-all shadow-lg hover:shadow-blue-500/20 active:scale-95 whitespace-nowrap"
+                >
+                    <PlusCircle size={18} />
+                    Add Entry
+                </button>
             </div>
 
             {/* Ledger Table */}
@@ -426,13 +550,63 @@ export default function PersonalLedgerPage() {
                 </div>
             </div>
 
+            {/* Create Ledger Modal */}
+            {showCreateLedgerModal && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full border border-slate-800">
+                        <div className="p-6 border-b border-slate-800">
+                            <h2 className="text-2xl font-bold text-white">Create New Ledger</h2>
+                            <p className="text-slate-400 text-sm mt-1">Create an isolated personal ledger to track specific finances.</p>
+                        </div>
+
+                        <form onSubmit={handleCreateLedger} className="p-6 space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-slate-300 mb-2">
+                                    Ledger Name <span className="text-red-400">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={newLedgerName}
+                                    onChange={(e) => setNewLedgerName(e.target.value)}
+                                    placeholder="e.g., Goa Trip, Savings"
+                                    className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                            </div>
+
+                            <div className="flex gap-3 pt-4">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setShowCreateLedgerModal(false);
+                                        setNewLedgerName('');
+                                    }}
+                                    className="flex-1 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-medium transition-all"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-all"
+                                >
+                                    Create Ledger
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
             {/* Add Entry Modal */}
             {showAddModal && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                     <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full border border-slate-800">
                         <div className="p-6 border-b border-slate-800">
                             <h2 className="text-2xl font-bold text-white">{editingEntry ? 'Edit Entry' : 'Add Entry'}</h2>
-                            <p className="text-slate-400 text-sm mt-1">{editingEntry ? 'Update income or expense details' : 'Record a new income or expense'}</p>
+                            <p className="text-slate-400 text-sm mt-1">
+                                {editingEntry ? 'Update income or expense details' : 'Record a new income or expense in'}
+                                <span className="text-blue-400 ml-1 font-medium">{selectedLedger === 'main' ? 'Main Cash Ledger' : ledgers.find(l => l._id === selectedLedger)?.name}</span>
+                            </p>
                         </div>
 
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
@@ -524,9 +698,10 @@ export default function PersonalLedgerPage() {
                                 </button>
                                 <button
                                     type="submit"
-                                    className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-all"
+                                    disabled={submitting}
+                                    className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-all disabled:opacity-50"
                                 >
-                                    {editingEntry ? 'Update Entry' : 'Add Entry'}
+                                    {submitting ? 'Saving...' : editingEntry ? 'Update Entry' : 'Add Entry'}
                                 </button>
                             </div>
                         </form>

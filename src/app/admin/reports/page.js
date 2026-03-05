@@ -300,7 +300,7 @@ export default function ReportsPage() {
         window.open(qs ? `${base}&${qs}` : base, '_blank');
     };
 
-    const tabSupportsDriverFilter = ['profit-loss', 'vehicle-profitability', 'trip-summary'].includes(activeTab);
+    const tabSupportsDriverFilter = ['profit-loss', 'vehicle-profitability', 'trip-summary', 'expense-breakdown'].includes(activeTab);
     const tabSupportsVehicleFilter = activeTab !== 'ledger-movement';
 
     return (

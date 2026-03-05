@@ -84,17 +84,18 @@ async function getVehicleProfitability(company_id, from, to, vehicle_id, driver_
         { $match: match },
         { $group: { _id: '$vehicle_id', income: { $sum: '$income' }, total_expenses: { $sum: '$total_expenses' }, trip_count: { $sum: 1 } } },
         { $lookup: { from: 'vehicles', localField: '_id', foreignField: '_id', as: 'v' } },
-        { $unwind: { path: '$v', preserveNullAndEmpty: false } },
+        { $unwind: { path: '$v', preserveNullAndEmptyArrays: false } },
         { $project: { _id: 0, vehicle_no: '$v.vehicle_no', income: 1, total_expenses: 1, net_profit: { $subtract: ['$income', '$total_expenses'] }, trip_count: 1 } },
         { $sort: { net_profit: -1 } },
     ]);
 }
 
-async function getExpenseBreakdown(company_id, from, to, vehicle_id) {
+async function getExpenseBreakdown(company_id, from, to, vehicle_id, driver_id) {
     const tripMatch = { company_id };
     const df = dateFilter(from, to);
     if (df) tripMatch.trip_date = df;
     if (vehicle_id) tripMatch.vehicle_id = new mongoose.Types.ObjectId(vehicle_id);
+    if (driver_id) tripMatch.driver_id = new mongoose.Types.ObjectId(driver_id);
 
     const [te] = await Trip.aggregate([
         { $match: tripMatch },
@@ -136,9 +137,9 @@ async function getTripSummary(company_id, from, to, vehicle_id, driver_id) {
     return Trip.aggregate([
         { $match: match },
         { $lookup: { from: 'vehicles', localField: 'vehicle_id', foreignField: '_id', as: 'vehicle' } },
-        { $unwind: { path: '$vehicle', preserveNullAndEmpty: true } },
+        { $unwind: { path: '$vehicle', preserveNullAndEmptyArrays: true } },
         { $lookup: { from: 'users', localField: 'driver_id', foreignField: '_id', as: 'driver' } },
-        { $unwind: { path: '$driver', preserveNullAndEmpty: true } },
+        { $unwind: { path: '$driver', preserveNullAndEmptyArrays: true } },
         {
             $project: {
                 _id: 0,
@@ -147,9 +148,14 @@ async function getTripSummary(company_id, from, to, vehicle_id, driver_id) {
                 vehicle_no: { $ifNull: ['$vehicle.vehicle_no', 'N/A'] },
                 driver_name: { $ifNull: ['$actual_driver_name', '$driver.name', 'N/A'] },
                 income: 1,
+                fuel: 1,
+                fasttag: 1,
+                driver_allowance: 1,
+                service: 1,
+                deposit_to_kdr_bank: 1,
+                other_expense: 1,
                 total_expenses: 1,
                 net_profit: { $subtract: ['$income', '$total_expenses'] },
-                notes: 1,
             },
         },
         { $sort: { date: -1 } },
@@ -227,15 +233,26 @@ async function buildPdf(title, headers, rows, labelMap) {
         // Data rows
         doc.font('Helvetica').fontSize(7.5);
         for (const row of rows) {
-            if (y > doc.page.height - 60) {
+            // Pre-calculate max cell height for this row
+            let maxRowHeight = 14;
+            headers.forEach((h, i) => {
+                const val = row[h] !== undefined && row[h] !== null ? String(row[h]) : '';
+                const hgt = doc.heightOfString(val, { width: colW - 4, align: 'left' });
+                if (hgt > maxRowHeight) maxRowHeight = hgt;
+            });
+            maxRowHeight += 10; // Extra row padding
+
+            if (y + maxRowHeight > doc.page.height - 60) {
                 doc.addPage();
                 y = 40;
             }
+
             headers.forEach((h, i) => {
                 const val = row[h] !== undefined && row[h] !== null ? String(row[h]) : '';
-                doc.text(val, 40 + i * colW, y, { width: colW - 4, lineBreak: false });
+                doc.text(val, 40 + i * colW, y, { width: colW - 4, align: 'left' });
             });
-            y += 14;
+
+            y += maxRowHeight;
         }
 
         doc.end();
@@ -286,16 +303,38 @@ export async function GET(req) {
                 break;
 
             case 'expense-breakdown':
-                rows = await getExpenseBreakdown(company_id, from, to, vehicle_id);
+                rows = await getExpenseBreakdown(company_id, from, to, vehicle_id, driver_id);
                 headers = ['category', 'type', 'amount'];
                 labelMap = { category: 'Category', type: 'Type', amount: 'Amount' };
                 title = 'Expense Breakdown Report';
                 break;
 
             case 'trip-summary':
-                rows = await getTripSummary(company_id, from, to, vehicle_id, driver_id);
-                headers = ['date', 'route', 'vehicle_no', 'driver_name', 'income', 'total_expenses', 'net_profit', 'notes'];
-                labelMap = { date: 'Date', route: 'Route', vehicle_no: 'Vehicle', driver_name: 'Driver', income: 'Income', total_expenses: 'Expenses', net_profit: 'Net Profit', notes: 'Notes' };
+                const tsRows = await getTripSummary(company_id, from, to, vehicle_id, driver_id);
+                if (format === 'pdf') {
+                    // For PDF, format the expense breakdown
+                    rows = tsRows.map(r => {
+                        const exps = [];
+                        if (r.fuel) exps.push(`Fuel:${r.fuel}`);
+                        if (r.fasttag) exps.push(`FastTag:${r.fasttag}`);
+                        if (r.driver_allowance) exps.push(`Allowance:${r.driver_allowance}`);
+                        if (r.service) exps.push(`Service:${r.service}`);
+                        if (r.deposit_to_kdr_bank) exps.push(`KDR:${r.deposit_to_kdr_bank}`);
+                        if (r.other_expense) exps.push(`Other:${r.other_expense}`);
+
+                        return {
+                            ...r,
+                            expense_breakdown: exps.length ? exps.join(', ') : 'None'
+                        };
+                    });
+                    headers = ['date', 'route', 'vehicle_no', 'driver_name', 'income', 'expense_breakdown', 'total_expenses', 'net_profit'];
+                    labelMap = { date: 'Date', route: 'Route', vehicle_no: 'Vehicle', driver_name: 'Driver', income: 'Income', expense_breakdown: 'Expense Breakdown', total_expenses: 'Total Expense', net_profit: 'Net Profit' };
+                } else {
+                    // CSV keeps original raw columns + notes
+                    rows = tsRows;
+                    headers = ['date', 'route', 'vehicle_no', 'driver_name', 'income', 'total_expenses', 'net_profit', 'notes', 'fuel', 'fasttag', 'driver_allowance', 'service', 'deposit_to_kdr_bank', 'other_expense'];
+                    labelMap = { date: 'Date', route: 'Route', vehicle_no: 'Vehicle', driver_name: 'Driver', income: 'Income', total_expenses: 'Expenses', net_profit: 'Net Profit', notes: 'Notes', fuel: 'Fuel', fasttag: 'FastTag', driver_allowance: 'Allowance', service: 'Service', deposit_to_kdr_bank: 'KDR Deposit', other_expense: 'Other Exp' };
+                }
                 title = 'Trip Summary Report';
                 break;
 
