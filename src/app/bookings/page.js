@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Navbar from '@/app/components/Navbar';
 import BookingCalendar from '@/app/components/BookingCalendar';
-import { Calendar as CalendarIcon, MapPin, Clock, Car, FileText, Eye } from 'lucide-react';
+import { Calendar as CalendarIcon, MapPin, Clock, Car, FileText, Eye, ChevronDown } from 'lucide-react';
 import { formatDate } from '@/lib/dateUtils';
 
 // Status Badge Component
@@ -150,18 +150,23 @@ export default function MyBookingsPage() {
     const [selectedBooking, setSelectedBooking] = useState(null);
     const [statusFilter, setStatusFilter] = useState('all');
     const [viewMode, setViewMode] = useState('list'); // 'list' | 'calendar'
+    const [sortField, setSortField] = useState('createdAt');
+    const [sortOrder, setSortOrder] = useState('desc');
 
     useEffect(() => {
         fetchBookings();
-    }, [statusFilter]);
+    }, [statusFilter, sortField, sortOrder]);
 
     async function fetchBookings() {
         setLoading(true);
         setError('');
         try {
-            const url = statusFilter === 'all'
-                ? '/api/bookings'
-                : `/api/bookings?status=${statusFilter}`;
+            const params = new URLSearchParams();
+            if (statusFilter !== 'all') params.append('status', statusFilter);
+            params.append('sortField', sortField);
+            params.append('sortOrder', sortOrder);
+
+            const url = `/api/bookings?${params.toString()}`;
 
             const res = await fetch(url);
             const json = await res.json();
@@ -230,6 +235,37 @@ export default function MyBookingsPage() {
                         >
                             <CalendarIcon size={16} /> Calendar
                         </button>
+                    </div>
+                </div>
+
+                {/* Sort Filters */}
+                <div className="flex flex-col sm:flex-row gap-4 mb-6">
+                    {/* Sort Field */}
+                    <div className="relative flex-1">
+                        <select
+                            value={sortField}
+                            onChange={(e) => setSortField(e.target.value)}
+                            className="w-full px-4 py-2 bg-slate-900 border border-slate-800 rounded-lg text-white text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            <option value="createdAt">Sort by: Created Date</option>
+                            <option value="journey_start_date">Sort by: Journey Date</option>
+                            <option value="total_amount">Sort by: Total Amount</option>
+                            <option value="status">Sort by: Status</option>
+                        </select>
+                        <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                    </div>
+
+                    {/* Sort Order */}
+                    <div className="relative flex-1">
+                        <select
+                            value={sortOrder}
+                            onChange={(e) => setSortOrder(e.target.value)}
+                            className="w-full px-4 py-2 bg-slate-900 border border-slate-800 rounded-lg text-white text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            <option value="desc">Descending</option>
+                            <option value="asc">Ascending</option>
+                        </select>
+                        <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                     </div>
                 </div>
 

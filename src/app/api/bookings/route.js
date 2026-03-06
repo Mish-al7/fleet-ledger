@@ -21,6 +21,9 @@ export async function GET(req) {
         const startDate = searchParams.get('start_date');
         const endDate = searchParams.get('end_date');
 
+        const sortField = searchParams.get('sortField') || 'createdAt';
+        const sortOrder = searchParams.get('sortOrder') === 'asc' ? 1 : -1;
+
         // Build query
         const query = {};
 
@@ -44,7 +47,7 @@ export async function GET(req) {
         const bookings = await Booking.find(query)
             .populate('vehicle_id', 'vehicle_no')
             .populate('created_by', 'name email')
-            .sort({ createdAt: -1 })
+            .sort({ [sortField]: sortOrder })
             .lean();
 
         return NextResponse.json({ success: true, data: bookings });

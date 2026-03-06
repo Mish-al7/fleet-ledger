@@ -159,11 +159,13 @@ export default function AdminBookingsPage() {
     const [vehicleFilter, setVehicleFilter] = useState('');
     const [dateFrom, setDateFrom] = useState('');
     const [dateTo, setDateTo] = useState('');
+    const [sortField, setSortField] = useState('createdAt');
+    const [sortOrder, setSortOrder] = useState('desc');
 
     useEffect(() => {
         fetchBookings();
         fetchVehicles();
-    }, [statusFilter, vehicleFilter, dateFrom, dateTo]);
+    }, [statusFilter, vehicleFilter, dateFrom, dateTo, sortField, sortOrder]);
 
     async function fetchVehicles() {
         try {
@@ -186,6 +188,8 @@ export default function AdminBookingsPage() {
             if (vehicleFilter) params.append('vehicle_id', vehicleFilter);
             if (dateFrom) params.append('start_date', dateFrom);
             if (dateTo) params.append('end_date', dateTo);
+            params.append('sortField', sortField);
+            params.append('sortOrder', sortOrder);
 
             const res = await fetch(`/api/bookings?${params.toString()}`);
             const json = await res.json();
@@ -312,7 +316,7 @@ export default function AdminBookingsPage() {
                     <span className="text-sm font-medium">Filters</span>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
                     {/* Status */}
                     <div className="relative">
                         <select
@@ -360,6 +364,34 @@ export default function AdminBookingsPage() {
                         placeholder="To Date"
                         className="px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
+
+                    {/* Sort Field */}
+                    <div className="relative">
+                        <select
+                            value={sortField}
+                            onChange={(e) => setSortField(e.target.value)}
+                            className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            <option value="createdAt">Created Date</option>
+                            <option value="journey_start_date">Journey Date</option>
+                            <option value="total_amount">Total Amount</option>
+                            <option value="status">Status</option>
+                        </select>
+                        <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                    </div>
+
+                    {/* Sort Order */}
+                    <div className="relative">
+                        <select
+                            value={sortOrder}
+                            onChange={(e) => setSortOrder(e.target.value)}
+                            className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            <option value="desc">Descending</option>
+                            <option value="asc">Ascending</option>
+                        </select>
+                        <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                    </div>
                 </div>
             </div>
 
