@@ -20,6 +20,10 @@ export const authOptions = {
                     throw new Error("No user found with the email");
                 }
 
+                if (user.isActive === false) {
+                    throw new Error("Account deactivated. Contact an administrator.");
+                }
+
                 const isValid = await bcrypt.compare(credentials.password, user.password);
 
                 if (!isValid) {
