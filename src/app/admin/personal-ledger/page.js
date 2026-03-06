@@ -363,12 +363,12 @@ export default function PersonalLedgerPage() {
                 </div>
 
                 {/* Filter Section */}
-                <div className="flex flex-nowrap items-center gap-2 bg-slate-900/50 p-1.5 rounded-xl border border-slate-800 flex-1 overflow-x-auto no-scrollbar shadow-inner">
+                <div className="flex flex-nowrap items-center gap-1.5 bg-slate-900/50 p-1 rounded-xl border border-slate-800 flex-1 shadow-inner overflow-hidden">
                     {/* Year Dropdown */}
                     <select
                         value={selectedYear}
                         onChange={(e) => handleYearChange(e.target.value)}
-                        className="bg-slate-950 text-white text-xs border border-slate-700 rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500 min-w-[70px]"
+                        className="bg-slate-950 text-white text-[11px] border border-slate-700 rounded-lg px-1.5 py-1 focus:outline-none focus:border-blue-500"
                     >
                         {[2024, 2025, 2026, 2027].map(y => (
                             <option key={y} value={y}>{y}</option>
@@ -379,7 +379,7 @@ export default function PersonalLedgerPage() {
                     <select
                         value={selectedMonth}
                         onChange={(e) => handleMonthChange(e.target.value)}
-                        className="bg-slate-950 text-white text-xs border border-slate-700 rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500 min-w-[100px]"
+                        className="bg-slate-950 text-white text-[11px] border border-slate-700 rounded-lg px-1.5 py-1 focus:outline-none focus:border-blue-500"
                     >
                         <option value="">All Months</option>
                         {Array.from({ length: 12 }, (_, i) => {
@@ -389,10 +389,10 @@ export default function PersonalLedgerPage() {
                         })}
                     </select>
 
-                    <div className="flex items-center text-slate-700 px-1 opacity-50">|</div>
+                    <div className="flex items-center text-slate-700 opacity-30">|</div>
 
                     {/* Custom Date Range */}
-                    <div className="flex items-center gap-1.5 text-[10px] text-slate-500">
+                    <div className="flex items-center gap-1 text-[10px] text-slate-500">
                         <input
                             type="date"
                             value={startDate}
@@ -401,9 +401,9 @@ export default function PersonalLedgerPage() {
                                 setSelectedMonth('');
                                 setIsFiltered(true);
                             }}
-                            className="bg-slate-950 text-white border border-slate-700 rounded-lg px-1.5 py-1 focus:outline-none w-28 text-[11px]"
+                            className="bg-slate-950 text-white border border-slate-700 rounded-lg px-1 py-1 focus:outline-none w-[105px] text-[10px]"
                         />
-                        <span className="opacity-50">to</span>
+                        <span className="opacity-30">to</span>
                         <input
                             type="date"
                             value={endDate}
@@ -412,24 +412,24 @@ export default function PersonalLedgerPage() {
                                 setSelectedMonth('');
                                 setIsFiltered(true);
                             }}
-                            className="bg-slate-950 text-white border border-slate-700 rounded-lg px-1.5 py-1 focus:outline-none w-28 text-[11px]"
+                            className="bg-slate-950 text-white border border-slate-700 rounded-lg px-1 py-1 focus:outline-none w-[105px] text-[10px]"
                         />
                     </div>
 
-                    <div className="flex gap-1.5 ml-auto pl-2 border-l border-slate-800">
+                    <div className="flex gap-1 ml-auto pl-1.5 border-l border-slate-800">
                         <button
                             onClick={handleApplyFilter}
-                            className="px-3 py-1.5 text-[11px] bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-semibold transition-all flex items-center gap-1.5 border border-slate-700 active:scale-95 whitespace-nowrap"
+                            className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-[10px] font-bold transition-all flex items-center gap-1 border border-slate-700 active:scale-95 whitespace-nowrap"
                         >
-                            <Filter size={12} />
+                            <Filter size={10} />
                             Apply
                         </button>
                         {isFiltered && (
                             <button
                                 onClick={handleClearFilter}
-                                className="px-2 py-1.5 text-[11px] bg-red-600/10 hover:bg-red-600/20 text-red-500 rounded-lg font-medium transition-all flex items-center gap-1.5 border border-red-500/20 active:scale-95"
+                                className="px-2 py-1 bg-red-600/10 hover:bg-red-600/20 text-red-500 rounded-lg transition-all flex items-center border border-red-500/20 active:scale-95"
                             >
-                                <X size={12} />
+                                <X size={10} />
                             </button>
                         )}
                     </div>
