@@ -28,13 +28,6 @@ export default function DashboardPage() {
             if (json.success) {
                 setSummary(json.data);
                 setAvailableMonths(json.availableMonths || []);
-
-                // If no month is selected yet (and not explicitly 'all'), 
-                // default to the most recent month if available
-                if (selectedMonth === 'all' && json.availableMonths?.length > 0 && !sessionStorage.getItem('summary_filter_initialized')) {
-                    setSelectedMonth(json.availableMonths[0]);
-                    sessionStorage.setItem('summary_filter_initialized', 'true');
-                }
             }
         } catch (err) {
             console.error(err);
