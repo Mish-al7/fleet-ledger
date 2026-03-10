@@ -1,0 +1,13 @@
+Migrating NEELAMBARI...
+
+Users migrated: 4
+Vehicles migrated: 4
+Trips migrated: 225
+Expenses migrated: 0
+Admin Cash Ledgers migrated: 119
+Vehicle Service Logs migrated: 5
+Opening Balances migrated: 4
+Bookings migrated: 4
+Trip Sheets migrated: 0
+Custom Ledgers migrated: 0
+Skipped records: 0
