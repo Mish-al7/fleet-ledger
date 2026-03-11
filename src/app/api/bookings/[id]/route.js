@@ -16,7 +16,13 @@ export async function GET(req, { params }) {
 
         const { id } = await params;
 
-        const booking = await Booking.findById(id)
+        const query = { _id: id };
+        const companyId = session.user.companyId || session.user.company_id;
+        if (companyId) {
+            query.company_id = companyId;
+        }
+
+        const booking = await Booking.findOne(query)
             .populate('vehicle_id', 'vehicle_no')
             .populate('created_by', 'name email')
             .lean();
@@ -25,9 +31,25 @@ export async function GET(req, { params }) {
             return NextResponse.json({ error: 'Booking not found' }, { status: 404 });
         }
 
-        // Drivers can only view their own bookings
+        // Drivers view rules
         if (session.user.role === 'driver' && booking.created_by._id.toString() !== session.user.id) {
-            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+            // It's not their booking, return the sanitized overview version instead of 403
+            const sanitizedBooking = {
+                _id: booking._id,
+                booking_no: booking.booking_no,
+                booking_date: booking.booking_date,
+                journey_start_date: booking.journey_start_date,
+                journey_return_date: booking.journey_return_date,
+                trip_start_time: booking.trip_start_time,
+                trip_end_time: booking.trip_end_time,
+                vehicle_id: booking.vehicle_id,
+                vehicle_no: booking.vehicle_no,
+                status: booking.status,
+                created_by: booking.created_by,
+                createdAt: booking.createdAt,
+                updatedAt: booking.updatedAt
+            };
+            return NextResponse.json({ success: true, data: sanitizedBooking });
         }
 
         return NextResponse.json({ success: true, data: booking });
@@ -50,8 +72,14 @@ export async function PATCH(req, { params }) {
         const { id } = await params;
         const body = await req.json();
 
+        const query = { _id: id };
+        const companyId = session.user.companyId || session.user.company_id;
+        if (companyId) {
+            query.company_id = companyId;
+        }
+
         // Check if booking exists
-        const existingBooking = await Booking.findById(id);
+        const existingBooking = await Booking.findOne(query);
         if (!existingBooking) {
             return NextResponse.json({ error: 'Booking not found' }, { status: 404 });
         }
@@ -117,7 +145,13 @@ export async function DELETE(req, { params }) {
 
         const { id } = await params;
 
-        const booking = await Booking.findById(id);
+        const query = { _id: id };
+        const companyId = session.user.companyId || session.user.company_id;
+        if (companyId) {
+            query.company_id = companyId;
+        }
+
+        const booking = await Booking.findOne(query);
         if (!booking) {
             return NextResponse.json({ error: 'Booking not found' }, { status: 404 });
         }

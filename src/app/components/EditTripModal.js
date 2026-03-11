@@ -73,7 +73,7 @@ export default function EditTripModal({ trip, onClose, onUpdate }) {
     useEffect(() => {
         async function fetchVehicles() {
             try {
-                const res = await fetch('/api/vehicles');
+                const res = await fetch('/api/user/vehicles');
                 const json = await res.json();
                 if (json.success) {
                     setVehicles(json.data);
