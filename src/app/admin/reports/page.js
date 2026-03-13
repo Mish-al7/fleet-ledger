@@ -245,6 +245,7 @@ export default function ReportsPage() {
     const [loading, setLoading] = useState(false);
 
     // Filters
+    const [month, setMonth] = useState('');
     const [from, setFrom] = useState('');
     const [to, setTo] = useState('');
     const [vehicles, setVehicles] = useState([]);
@@ -289,6 +290,39 @@ export default function ReportsPage() {
             setLoading(false);
         }
     }, [activeTab, buildQs]);
+
+    const handleMonthChange = (e) => {
+        const val = e.target.value;
+        setMonth(val);
+        if (val) {
+            const [y, m] = val.split('-');
+            // Create dates in local time to avoid timezone shifts
+            const first = new Date(y, m - 1, 1);
+            const last = new Date(y, m, 0); // 0 gets the last day of previous month, which is the current month since m is 1-indexed here natively
+            
+            // Format to YYYY-MM-DD local
+            const fmt = (d) => {
+                const pad = n => n.toString().padStart(2, '0');
+                return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+            };
+            
+            setFrom(fmt(first));
+            setTo(fmt(last));
+        } else {
+            setFrom('');
+            setTo('');
+        }
+    };
+
+    const handleFromChange = (e) => {
+        setFrom(e.target.value);
+        setMonth(''); // Clear month if custom date selected
+    };
+
+    const handleToChange = (e) => {
+        setTo(e.target.value);
+        setMonth(''); // Clear month if custom date selected
+    };
 
     useEffect(() => {
         fetchReport();
@@ -336,12 +370,26 @@ export default function ReportsPage() {
                 <div className="flex flex-wrap gap-3 items-end">
                     <div className="flex flex-col gap-1">
                         <label className="text-xs text-slate-500 font-medium flex items-center gap-1">
-                            <Filter size={10} /> From
+                            <Filter size={10} /> Month
+                        </label>
+                        <input
+                            type="month"
+                            value={month}
+                            onChange={handleMonthChange}
+                            className="bg-slate-800 border border-slate-700 text-slate-200 text-sm rounded-lg px-3 py-2 outline-none focus:border-blue-500/60 transition-colors"
+                        />
+                    </div>
+                    
+                    <div className="hidden sm:block text-slate-600 mb-2">or</div>
+
+                    <div className="flex flex-col gap-1">
+                        <label className="text-xs text-slate-500 font-medium flex items-center gap-1">
+                            From
                         </label>
                         <input
                             type="date"
                             value={from}
-                            onChange={e => setFrom(e.target.value)}
+                            onChange={handleFromChange}
                             className="bg-slate-800 border border-slate-700 text-slate-200 text-sm rounded-lg px-3 py-2 outline-none focus:border-blue-500/60 transition-colors"
                         />
                     </div>
@@ -350,7 +398,7 @@ export default function ReportsPage() {
                         <input
                             type="date"
                             value={to}
-                            onChange={e => setTo(e.target.value)}
+                            onChange={handleToChange}
                             className="bg-slate-800 border border-slate-700 text-slate-200 text-sm rounded-lg px-3 py-2 outline-none focus:border-blue-500/60 transition-colors"
                         />
                     </div>
@@ -394,7 +442,7 @@ export default function ReportsPage() {
                     )}
 
                     <button
-                        onClick={() => { setFrom(''); setTo(''); setVehicleId(''); setDriverId(''); }}
+                        onClick={() => { setMonth(''); setFrom(''); setTo(''); setVehicleId(''); setDriverId(''); }}
                         className="text-xs text-slate-500 hover:text-slate-300 transition-colors self-end pb-2.5"
                     >
                         Clear filters
