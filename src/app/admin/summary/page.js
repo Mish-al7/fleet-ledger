@@ -190,9 +190,9 @@ export default function DashboardPage() {
             {/* Charts Section */}
             <div className="grid gap-6 lg:grid-cols-2">
                 {/* Profit by Vehicle - Horizontal Bar Chart */}
-                <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 flex flex-col">
+                <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 flex flex-col overflow-x-auto">
                     <h3 className="text-lg font-bold text-white mb-4">Profit by Vehicle</h3>
-                    <div className="flex-1 min-h-[300px]" style={{ minHeight: Math.max(300, chartData.length * 60) }}>
+                    <div className="flex-1 min-h-[300px] min-w-[500px]" style={{ minHeight: Math.max(300, chartData.length * 60) }}>
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart
                                 layout="vertical"
@@ -229,9 +229,9 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Income vs Expenses - Horizontal Bar Chart */}
-                <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 flex flex-col">
+                <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 flex flex-col overflow-x-auto">
                     <h3 className="text-lg font-bold text-white mb-4">Income vs Expenses</h3>
-                    <div className="flex-1 min-h-[300px]" style={{ minHeight: Math.max(300, chartData.length * 60) }}>
+                    <div className="flex-1 min-h-[300px] min-w-[500px]" style={{ minHeight: Math.max(300, chartData.length * 60) }}>
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart
                                 layout="vertical"
@@ -272,7 +272,7 @@ export default function DashboardPage() {
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
                             <thead>
-                                <tr className="bg-slate-900/50 text-slate-400 text-sm uppercase tracking-wider">
+                                <tr className="bg-slate-900/50 text-slate-400 text-sm uppercase tracking-wider whitespace-nowrap">
                                     <th className="p-4 font-medium border-b border-slate-800">Vehicle</th>
                                     <th className="p-4 font-medium border-b border-slate-800 text-right">Income</th>
                                     <th className="p-4 font-medium border-b border-slate-800 text-right">Expenses</th>
@@ -280,7 +280,7 @@ export default function DashboardPage() {
                                     <th className="p-4 font-medium border-b border-slate-800 text-right">Margin</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-800">
+                            <tbody className="divide-y divide-slate-800 whitespace-nowrap">
                                 {chartData.map((item) => {
                                     const margin = item.income > 0 ? ((item.profit / item.income) * 100).toFixed(1) : '0.0';
                                     return (
@@ -307,9 +307,10 @@ export default function DashboardPage() {
 
             {/* Monthly Trend (if multiple months) */}
             {selectedMonth === 'all' && availableMonths.length > 1 && (
-                <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+                <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 overflow-x-auto">
                     <h3 className="text-lg font-bold text-white mb-4">Monthly Profit Trend</h3>
-                    <ResponsiveContainer width="100%" height={300}>
+                    <div className="min-w-[600px]">
+                        <ResponsiveContainer width="100%" height={300}>
                         <LineChart data={summary.reduce((acc, item) => {
                             const existing = acc.find(a => a.month === item.month);
                             if (existing) {
@@ -330,7 +331,8 @@ export default function DashboardPage() {
                             />
                             <Line type="monotone" dataKey="profit" stroke="#3b82f6" strokeWidth={3} dot={{ fill: '#3b82f6', r: 4, strokeWidth: 2, stroke: '#1e293b' }} />
                         </LineChart>
-                    </ResponsiveContainer>
+                        </ResponsiveContainer>
+                    </div>
                 </div>
             )}
 

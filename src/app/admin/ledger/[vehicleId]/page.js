@@ -126,21 +126,21 @@ export default function VehicleLedgerPage() {
                                 </>
                             ) : 'Vehicle Ledger'}
                         </h1>
-                        <div className="flex flex-col gap-1 mt-1">
-                            <div className="flex items-center gap-3">
+                        <div className="flex flex-col gap-2 mt-2">
+                            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
                                 <p className="text-slate-400 text-sm">
                                     Opening Balance ({data.selected_year}):
                                     <span className="text-white font-mono ml-1">₹{data.opening_balance.toLocaleString()}</span>
                                 </p>
-                                <span className="text-slate-700">|</span>
+                                <span className="hidden md:inline text-slate-700">|</span>
                                 <p className="text-slate-400 text-sm">
                                     Running Balance ({selectedYear}):
                                     <span className={`font-mono ml-1 ${yearlyRunningBalance >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                                         {yearlyRunningBalance >= 0 ? '+' : ''}₹{yearlyRunningBalance.toLocaleString()}
                                     </span>
                                 </p>
-                                <span className="text-slate-700">|</span>
-                                <p className="text-slate-200 text-sm font-bold">
+                                <span className="hidden md:inline text-slate-700">|</span>
+                                <p className="text-slate-200 text-sm font-bold w-full md:w-auto mt-1 md:mt-0 pt-1 md:pt-0 border-t md:border-t-0 border-slate-800">
                                     Total Balance:
                                     <span className={`font-mono ml-1 ${totalBalance >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                                         ₹{totalBalance.toLocaleString()}
@@ -153,8 +153,8 @@ export default function VehicleLedgerPage() {
 
                                     return (
                                         <>
-                                            <span className="text-slate-700">|</span>
-                                            <p className="text-blue-200 text-sm font-bold">
+                                            <span className="hidden md:inline text-slate-700">|</span>
+                                            <p className="text-blue-200 text-sm font-bold w-full md:w-auto">
                                                 Monthly Balance:
                                                 <span className={`font-mono ml-1 ${monthBalance >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                                                     {monthBalance >= 0 ? '+' : ''}₹{monthBalance.toLocaleString()}
@@ -172,11 +172,11 @@ export default function VehicleLedgerPage() {
                 </div>
 
                 {/* Filter Bar */}
-                <div className="flex flex-wrap items-center gap-3 bg-slate-900/50 p-2 rounded-xl border border-slate-800">
+                <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 bg-slate-900/50 p-2 rounded-xl border border-slate-800">
                     <select
                         value={selectedYear}
                         onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-                        className="bg-slate-950 text-white text-sm border border-slate-700 rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500"
+                        className="bg-slate-950 text-white text-sm border border-slate-700 rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500 w-full sm:w-auto"
                     >
                         {[2024, 2025, 2026, 2027].map(y => (
                             <option key={y} value={y}>{y}</option>
@@ -186,7 +186,7 @@ export default function VehicleLedgerPage() {
                     <select
                         value={selectedMonth}
                         onChange={(e) => setSelectedMonth(e.target.value)}
-                        className="bg-slate-950 text-white text-sm border border-slate-700 rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500"
+                        className="bg-slate-950 text-white text-sm border border-slate-700 rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500 w-full sm:w-auto"
                     >
                         <option value="">All Months</option>
                         {Array.from({ length: 12 }, (_, i) => {
@@ -196,24 +196,26 @@ export default function VehicleLedgerPage() {
                         })}
                     </select>
 
-                    <div className="flex items-center gap-2 text-xs text-slate-500">
-                        <input
-                            type="date"
-                            value={dateRange.start}
-                            onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
-                            className="bg-slate-950 text-white border border-slate-700 rounded-lg px-2 py-1 focus:outline-none"
-                        />
-                        <span>to</span>
-                        <input
-                            type="date"
-                            value={dateRange.end}
-                            onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
-                            className="bg-slate-950 text-white border border-slate-700 rounded-lg px-2 py-1 focus:outline-none"
-                        />
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-xs text-slate-500 w-full sm:w-auto">
+                        <div className="flex items-center gap-2 w-full sm:w-auto">
+                            <input
+                                type="date"
+                                value={dateRange.start}
+                                onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
+                                className="bg-slate-950 text-white border border-slate-700 rounded-lg px-2 py-1.5 focus:outline-none flex-1 sm:flex-none"
+                            />
+                            <span className="hidden sm:inline">to</span>
+                            <input
+                                type="date"
+                                value={dateRange.end}
+                                onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
+                                className="bg-slate-950 text-white border border-slate-700 rounded-lg px-2 py-1.5 focus:outline-none flex-1 sm:flex-none"
+                            />
+                        </div>
                         {(dateRange.start || dateRange.end || selectedMonth) && (
                             <button
                                 onClick={() => { setSelectedMonth(''); setDateRange({ start: '', end: '' }); }}
-                                className="text-blue-400 hover:text-blue-300 ml-1"
+                                className="text-blue-400 hover:text-blue-300 sm:ml-1 py-1 sm:py-0 self-end sm:self-auto"
                             >
                                 Clear
                             </button>
@@ -225,7 +227,7 @@ export default function VehicleLedgerPage() {
             <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-xl">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm text-slate-400">
-                        <thead className="bg-slate-950 text-slate-200 uppercase tracking-wider font-semibold border-b border-slate-800">
+                        <thead className="bg-slate-950 text-slate-200 uppercase tracking-wider font-semibold border-b border-slate-800 whitespace-nowrap">
                             <tr>
                                 <th className="px-6 py-4">Date</th>
                                 <th className="px-6 py-4">Route</th>
@@ -237,7 +239,7 @@ export default function VehicleLedgerPage() {
                                 <th className="px-6 py-4 text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-800/50">
+                        <tbody className="divide-y divide-slate-800/50 whitespace-nowrap">
                             {filteredLedger.map((row) => {
                                 const profit = (row.income || 0) - (row.total_expenses || 0);
                                 return (

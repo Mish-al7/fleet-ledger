@@ -39,7 +39,9 @@ function ChartCard({ title, children, empty }) {
             {empty ? (
                 <div className="flex items-center justify-center h-[260px] text-slate-600 text-sm">No data</div>
             ) : (
-                <div className="h-[260px]">{children}</div>
+                <div className="overflow-x-auto w-full pb-2">
+                    <div className="h-[260px] min-w-[500px] w-full">{children}</div>
+                </div>
             )}
         </div>
     );
