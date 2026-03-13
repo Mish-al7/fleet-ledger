@@ -6,6 +6,7 @@ import BookingEditModal from './BookingEditModal';
 import BookingCreateModal from './BookingCreateModal';
 import BookingCalendar from '@/app/components/BookingCalendar';
 import { formatDate } from '@/lib/dateUtils';
+import DateInput from '@/components/ui/DateInput';
 
 // Status Badge Component
 const StatusBadge = ({ status }) => {
@@ -348,8 +349,7 @@ export default function AdminBookingsPage() {
                     </div>
 
                     {/* Date From */}
-                    <input
-                        type="date"
+                    <DateInput
                         value={dateFrom}
                         onChange={(e) => setDateFrom(e.target.value)}
                         placeholder="From Date"
@@ -357,8 +357,7 @@ export default function AdminBookingsPage() {
                     />
 
                     {/* Date To */}
-                    <input
-                        type="date"
+                    <DateInput
                         value={dateTo}
                         onChange={(e) => setDateTo(e.target.value)}
                         placeholder="To Date"

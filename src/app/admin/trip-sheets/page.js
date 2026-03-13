@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Plus, Search, FileText, Download, Eye } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { formatDate } from '@/lib/dateUtils';
+import DateInput from '@/components/ui/DateInput';
 
 export default function TripSheetsPage() {
     const [tripSheets, setTripSheets] = useState([]);
@@ -83,8 +84,7 @@ export default function TripSheetsPage() {
                 <form onSubmit={applyFilters} className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
                     <div>
                         <label className="block text-xs text-slate-400 mb-1">From Date</label>
-                        <input
-                            type="date"
+                        <DateInput
                             name="startDate"
                             value={filters.startDate}
                             onChange={handleFilterChange}
@@ -93,8 +93,7 @@ export default function TripSheetsPage() {
                     </div>
                     <div>
                         <label className="block text-xs text-slate-400 mb-1">To Date</label>
-                        <input
-                            type="date"
+                        <DateInput
                             name="endDate"
                             value={filters.endDate}
                             onChange={handleFilterChange}

@@ -11,7 +11,9 @@ import {
     FileText,
     ChevronDown,
     Filter,
+    Calendar,
 } from 'lucide-react';
+import DateInput from '@/components/ui/DateInput';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -299,13 +301,13 @@ export default function ReportsPage() {
             // Create dates in local time to avoid timezone shifts
             const first = new Date(y, m - 1, 1);
             const last = new Date(y, m, 0); // 0 gets the last day of previous month, which is the current month since m is 1-indexed here natively
-            
+
             // Format to YYYY-MM-DD local
             const fmt = (d) => {
                 const pad = n => n.toString().padStart(2, '0');
                 return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
             };
-            
+
             setFrom(fmt(first));
             setTo(fmt(last));
         } else {
@@ -372,22 +374,30 @@ export default function ReportsPage() {
                         <label className="text-xs text-slate-500 font-medium flex items-center gap-1">
                             <Filter size={10} /> Month
                         </label>
-                        <input
-                            type="month"
-                            value={month}
-                            onChange={handleMonthChange}
-                            className="bg-slate-800 border border-slate-700 text-slate-200 text-sm rounded-lg px-3 py-2 outline-none focus:border-blue-500/60 transition-colors"
-                        />
+                        <div className="relative flex items-center bg-slate-800 border border-slate-700 rounded-lg group focus-within:border-blue-500/60 transition-colors">
+                            <input
+                                type="month"
+                                value={month}
+                                onChange={handleMonthChange}
+                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                style={{ colorScheme: 'dark' }}
+                            />
+                            <div className="flex items-center gap-2 px-3 py-2 w-full min-w-[120px]">
+                                <Calendar size={14} className="text-white opacity-70" />
+                                <span className="text-slate-200 text-sm">
+                                    {month ? new Date(month + '-01').toLocaleString('default', { month: 'short', year: 'numeric' }) : 'Select Month'}
+                                </span>
+                            </div>
+                        </div>
                     </div>
-                    
+
                     <div className="hidden sm:block text-slate-600 mb-2">or</div>
 
                     <div className="flex flex-col gap-1">
                         <label className="text-xs text-slate-500 font-medium flex items-center gap-1">
                             From
                         </label>
-                        <input
-                            type="date"
+                        <DateInput
                             value={from}
                             onChange={handleFromChange}
                             className="bg-slate-800 border border-slate-700 text-slate-200 text-sm rounded-lg px-3 py-2 outline-none focus:border-blue-500/60 transition-colors"
@@ -395,8 +405,7 @@ export default function ReportsPage() {
                     </div>
                     <div className="flex flex-col gap-1">
                         <label className="text-xs text-slate-500 font-medium">To</label>
-                        <input
-                            type="date"
+                        <DateInput
                             value={to}
                             onChange={handleToChange}
                             className="bg-slate-800 border border-slate-700 text-slate-200 text-sm rounded-lg px-3 py-2 outline-none focus:border-blue-500/60 transition-colors"

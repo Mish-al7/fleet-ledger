@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { PlusCircle, Calendar, Filter, X, Edit2, Trash2 } from 'lucide-react';
 import { formatDate } from '@/lib/dateUtils';
+import DateInput from '@/components/ui/DateInput';
 
 export default function PersonalLedgerPage() {
     const [entries, setEntries] = useState([]);
@@ -393,8 +394,7 @@ export default function PersonalLedgerPage() {
 
                     {/* Custom Date Range */}
                     <div className="flex items-center gap-1 text-[10px] text-slate-500">
-                        <input
-                            type="date"
+                        <DateInput
                             value={startDate}
                             onChange={(e) => {
                                 setStartDate(e.target.value);
@@ -404,8 +404,7 @@ export default function PersonalLedgerPage() {
                             className="bg-slate-950 text-white border border-slate-700 rounded-lg px-1 py-1 focus:outline-none w-[105px] text-[10px]"
                         />
                         <span className="opacity-30">to</span>
-                        <input
-                            type="date"
+                        <DateInput
                             value={endDate}
                             onChange={(e) => {
                                 setEndDate(e.target.value);
@@ -615,8 +614,7 @@ export default function PersonalLedgerPage() {
                                 <label className="block text-sm font-medium text-slate-300 mb-2">
                                     Date <span className="text-red-400">*</span>
                                 </label>
-                                <input
-                                    type="date"
+                                <DateInput
                                     required
                                     value={formData.date}
                                     onChange={(e) => setFormData({ ...formData, date: e.target.value })}

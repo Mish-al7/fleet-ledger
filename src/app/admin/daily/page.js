@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Calendar as CalendarIcon, Wallet, FileText, Truck, CalendarCheck, TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
 import { formatDate } from '@/lib/dateUtils';
+import DateInput from '@/components/ui/DateInput';
 
 export default function DailyDashboardPage() {
     const router = useRouter();
@@ -128,17 +129,11 @@ export default function DailyDashboardPage() {
                     >
                         Day Before
                     </button>
-                    <div className="relative flex items-center border border-slate-700 rounded-lg overflow-hidden focus-within:border-emerald-500 transition-colors">
-                        <div className="pl-3 pr-2 py-2 bg-slate-800 flex items-center justify-center border-r border-slate-700">
-                            <CalendarIcon size={16} className="text-slate-400" />
-                        </div>
-                        <input
-                            type="date"
-                            value={selectedDate}
-                            onChange={(e) => handleDateChange(e.target.value)}
-                            className="bg-slate-800 text-white text-sm px-3 py-2 outline-none w-[130px] cursor-pointer"
-                        />
-                    </div>
+                    <DateInput
+                        value={selectedDate}
+                        onChange={(e) => handleDateChange(e.target.value)}
+                        className="bg-slate-800 text-white text-sm px-3 py-2 outline-none w-[130px] cursor-pointer border border-slate-700 rounded-lg overflow-hidden focus-within:border-emerald-500 transition-colors"
+                    />
                 </div>
             </div>
 

@@ -126,7 +126,7 @@ export default function DashboardPage() {
                     {/* History Dropdown */}
                     {availableMonths.length > 0 && (
                         <div className="relative flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-full px-4 py-2 hover:border-slate-700 transition-all">
-                            <Calendar size={14} className="text-slate-500" />
+                            <Calendar size={14} className="text-white opacity-70" />
                             <select
                                 value={availableMonths.includes(selectedMonth) ? selectedMonth : 'history'}
                                 onChange={(e) => {
@@ -134,9 +134,9 @@ export default function DashboardPage() {
                                         setSelectedMonth(e.target.value);
                                     }
                                 }}
-                                className="bg-transparent text-sm font-medium text-slate-400 outline-none cursor-pointer appearance-none pr-4"
+                                className="bg-transparent text-sm font-medium text-slate-300 outline-none cursor-pointer appearance-none pr-4"
                             >
-                                <option value="history" disabled>History</option>
+                                <option value="history" disabled className="bg-slate-900 border-none">History</option>
                                 {availableMonths.map(month => (
                                     <option key={month} value={month} className="bg-slate-900 text-white">
                                         {formatMonth(month)}
@@ -144,7 +144,7 @@ export default function DashboardPage() {
                                 ))}
                             </select>
                             <div className="absolute right-3 pointer-events-none">
-                                <Filter size={10} className="text-slate-500" />
+                                <Filter size={10} className="text-white opacity-60" />
                             </div>
                         </div>
                     )}
@@ -311,26 +311,26 @@ export default function DashboardPage() {
                     <h3 className="text-lg font-bold text-white mb-4">Monthly Profit Trend</h3>
                     <div className="min-w-[600px]">
                         <ResponsiveContainer width="100%" height={300}>
-                        <LineChart data={summary.reduce((acc, item) => {
-                            const existing = acc.find(a => a.month === item.month);
-                            if (existing) {
-                                existing.profit += item.profit;
-                            } else {
-                                acc.push({ month: item.month, profit: item.profit });
-                            }
-                            return acc;
-                        }, []).sort((a, b) => a.month.localeCompare(b.month))}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                            <XAxis dataKey="month" stroke="#94a3b8" tickFormatter={(m) => formatMonth(m)} />
-                            <YAxis stroke="#94a3b8" />
-                            <Tooltip
-                                contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px' }}
-                                labelStyle={{ color: '#e2e8f0' }}
-                                labelFormatter={(label) => formatMonth(label)}
-                                formatter={(value) => [`₹${value.toLocaleString()}`, 'Profit']}
-                            />
-                            <Line type="monotone" dataKey="profit" stroke="#3b82f6" strokeWidth={3} dot={{ fill: '#3b82f6', r: 4, strokeWidth: 2, stroke: '#1e293b' }} />
-                        </LineChart>
+                            <LineChart data={summary.reduce((acc, item) => {
+                                const existing = acc.find(a => a.month === item.month);
+                                if (existing) {
+                                    existing.profit += item.profit;
+                                } else {
+                                    acc.push({ month: item.month, profit: item.profit });
+                                }
+                                return acc;
+                            }, []).sort((a, b) => a.month.localeCompare(b.month))}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                                <XAxis dataKey="month" stroke="#94a3b8" tickFormatter={(m) => formatMonth(m)} />
+                                <YAxis stroke="#94a3b8" />
+                                <Tooltip
+                                    contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px' }}
+                                    labelStyle={{ color: '#e2e8f0' }}
+                                    labelFormatter={(label) => formatMonth(label)}
+                                    formatter={(value) => [`₹${value.toLocaleString()}`, 'Profit']}
+                                />
+                                <Line type="monotone" dataKey="profit" stroke="#3b82f6" strokeWidth={3} dot={{ fill: '#3b82f6', r: 4, strokeWidth: 2, stroke: '#1e293b' }} />
+                            </LineChart>
                         </ResponsiveContainer>
                     </div>
                 </div>

@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
 import { Calendar, MapPin, Users, Clock, Car, Phone, User, DollarSign, Save, AlertCircle, X } from 'lucide-react';
+import DateInput from '@/components/ui/DateInput';
 
 const InputGroup = ({ label, name, value, onChange, type = "text", icon: Icon, placeholder, required = false, rows }) => (
     <div className="space-y-1">
@@ -19,6 +19,15 @@ const InputGroup = ({ label, name, value, onChange, type = "text", icon: Icon, p
                     rows={rows}
                     placeholder={placeholder}
                     className="block w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+                />
+            ) : type === "date" ? (
+                <DateInput
+                    name={name}
+                    value={value}
+                    onChange={onChange}
+                    required={required}
+                    placeholder={placeholder}
+                    className={`block w-full ${Icon ? 'pl-10' : 'px-4'} pr-3 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all`}
                 />
             ) : (
                 <input

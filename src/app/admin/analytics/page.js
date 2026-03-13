@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Filter } from 'lucide-react';
+import DateInput from '@/components/ui/DateInput';
 import {
     BarChart, Bar,
     LineChart, Line,
@@ -121,8 +122,7 @@ export default function AnalyticsPage() {
                         <label className="text-xs text-slate-500 font-medium flex items-center gap-1">
                             <Filter size={10} /> From
                         </label>
-                        <input
-                            type="date"
+                        <DateInput
                             value={from}
                             onChange={e => setFrom(e.target.value)}
                             className="bg-slate-800 border border-slate-700 text-slate-200 text-sm rounded-lg px-3 py-2 outline-none focus:border-blue-500/60 transition-colors"
@@ -130,8 +130,7 @@ export default function AnalyticsPage() {
                     </div>
                     <div className="flex flex-col gap-1">
                         <label className="text-xs text-slate-500 font-medium">To</label>
-                        <input
-                            type="date"
+                        <DateInput
                             value={to}
                             onChange={e => setTo(e.target.value)}
                             className="bg-slate-800 border border-slate-700 text-slate-200 text-sm rounded-lg px-3 py-2 outline-none focus:border-blue-500/60 transition-colors"

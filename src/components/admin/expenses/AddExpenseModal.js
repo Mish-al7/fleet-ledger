@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { X, Check } from 'lucide-react';
+import DateInput from '@/components/ui/DateInput';
 
 export default function AddExpenseModal({ onClose, onSave, vehicles, initialData = null }) {
     const [formData, setFormData] = useState({
@@ -107,12 +108,11 @@ export default function AddExpenseModal({ onClose, onSave, vehicles, initialData
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-slate-300 mb-1">Start Date</label>
-                            <input
-                                type="date"
+                            <DateInput
                                 required
                                 value={formData.start_date}
                                 onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
-                                className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white [color-scheme:dark]"
+                                className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white"
                             />
                         </div>
                     </div>
@@ -141,11 +141,10 @@ export default function AddExpenseModal({ onClose, onSave, vehicles, initialData
                     {formData.frequency !== 'One-time' && (
                         <div>
                             <label className="block text-sm font-medium text-slate-300 mb-1">End Date (Optional)</label>
-                            <input
-                                type="date"
+                            <DateInput
                                 value={formData.end_date}
                                 onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
-                                className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white [color-scheme:dark]"
+                                className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white"
                             />
                         </div>
                     )}

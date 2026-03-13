@@ -6,6 +6,7 @@ import { ArrowLeft, ChevronDown, ChevronUp, Pencil, Trash2 } from 'lucide-react'
 import Link from 'next/link';
 import EditTripModal from '@/app/components/EditTripModal';
 import { formatDate } from '@/lib/dateUtils';
+import DateInput from '@/components/ui/DateInput';
 
 export default function VehicleLedgerPage() {
     const { vehicleId } = useParams();
@@ -198,15 +199,13 @@ export default function VehicleLedgerPage() {
 
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-xs text-slate-500 w-full sm:w-auto">
                         <div className="flex items-center gap-2 w-full sm:w-auto">
-                            <input
-                                type="date"
+                            <DateInput
                                 value={dateRange.start}
                                 onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
                                 className="bg-slate-950 text-white border border-slate-700 rounded-lg px-2 py-1.5 focus:outline-none flex-1 sm:flex-none"
                             />
                             <span className="hidden sm:inline">to</span>
-                            <input
-                                type="date"
+                            <DateInput
                                 value={dateRange.end}
                                 onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
                                 className="bg-slate-950 text-white border border-slate-700 rounded-lg px-2 py-1.5 focus:outline-none flex-1 sm:flex-none"
