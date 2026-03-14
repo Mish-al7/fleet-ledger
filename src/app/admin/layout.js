@@ -108,6 +108,7 @@ export default function AdminLayout({ children }) {
                     <NavItem href="/admin/drivers" icon={Users} label="Drivers" pathname={pathname} />
                     <NavItem href="/admin/opening-balances" icon={Settings} label="Opening Balances" pathname={pathname} />
                     <NavItem href="/admin/trip-sheets" icon={FileText} label="Trip Sheets" pathname={pathname} />
+                    <NavItem href="/admin/invoices" icon={FileText} label="Invoices" pathname={pathname} />
                     <NavItem href="/admin/bookings" icon={CalendarCheck} label="Bookings" pathname={pathname} />
                     <NavItem href="/admin/personal-ledger" icon={Wallet} label="Personal Ledger" pathname={pathname} />
                     <NavItem href="/admin/reports" icon={BarChart2} label="Reports" pathname={pathname} />

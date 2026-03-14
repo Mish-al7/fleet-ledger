@@ -226,4 +226,14 @@ BookingSchema.statics.checkVehicleAvailability = async function (vehicleId, star
     };
 };
 
-export default mongoose.models.Booking || mongoose.model('Booking', BookingSchema);
+const Booking = mongoose.models.Booking || mongoose.model('Booking', BookingSchema);
+
+// If the model was already registered but lacks static methods (due to HMR), add them
+if (!Booking.generateBookingNo) {
+    Booking.generateBookingNo = BookingSchema.statics.generateBookingNo;
+}
+if (!Booking.checkVehicleAvailability) {
+    Booking.checkVehicleAvailability = BookingSchema.statics.checkVehicleAvailability;
+}
+
+export default Booking;
