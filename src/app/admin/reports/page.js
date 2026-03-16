@@ -176,8 +176,8 @@ function TripSummaryTable({ data }) {
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800/60">
-                    {data.map(r => (
-                        <tr key={r._id} className="text-slate-300 hover:bg-slate-800/40 transition-colors">
+                    {data.map((r, i) => (
+                        <tr key={r._id || i} className="text-slate-300 hover:bg-slate-800/40 transition-colors">
                             <td className="px-4 py-3 font-mono text-xs text-slate-400">{r.trip_date || r.date}</td>
                             <td className="px-4 py-3 max-w-[160px] truncate">{r.trip_route || r.route}</td>
                             <td className="px-4 py-3 font-semibold text-white">{r.vehicle_no}</td>
