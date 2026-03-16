@@ -31,6 +31,7 @@ export default function OpeningBalancesPage() {
                     return {
                         vehicle_id: v._id,
                         vehicle_no: v.vehicle_no,
+                        nickname: v.nickname,
                         opening_balance: found ? found.opening_balance : 0
                     };
                 });
@@ -116,7 +117,10 @@ export default function OpeningBalancesPage() {
                                     <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 font-bold text-xs uppercase">
                                         {item.vehicle_no.slice(0, 2)}
                                     </div>
-                                    <span className="font-mono text-white font-medium">{item.vehicle_no}</span>
+                                    <div className="flex-1">
+                                        <span className="font-mono text-white font-medium block uppercase">{item.vehicle_no}</span>
+                                        {item.nickname && <span className="text-xs text-slate-400 block">{item.nickname}</span>}
+                                    </div>
                                 </div>
 
                                 <div className="flex items-center gap-3">

@@ -193,7 +193,9 @@ export default function BookingCreateModal({ vehicles, onClose, onCreate }) {
                                     >
                                         <option value="" disabled>Select Vehicle</option>
                                         {vehicles.map(v => (
-                                            <option key={v._id} value={v._id}>{v.vehicle_no}</option>
+                                            <option key={v._id} value={v._id}>
+                                                {v.vehicle_no}{v.nickname ? ` (${v.nickname})` : ''}
+                                            </option>
                                         ))}
                                     </select>
                                     <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">

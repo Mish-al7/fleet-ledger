@@ -56,7 +56,7 @@ export async function GET(req) {
             ...baseQuery,
             trip_date: dateQuery
         })
-            .populate('vehicle_id', 'vehicle_no')
+            .populate('vehicle_id', 'vehicle_no nickname')
             .populate('driver_id', 'name')
             .sort({ createdAt: -1 })
             .lean();

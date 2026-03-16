@@ -218,7 +218,7 @@ export default function DailyDashboardPage() {
                                 </div>
                                 <div className="flex items-center justify-between text-xs text-slate-500">
                                     <div className="flex items-center gap-2">
-                                        <Truck size={12} /> {trip.vehicle_id?.vehicle_no || 'Unknown'}
+                                        <Truck size={12} /> {trip.vehicle_id?.vehicle_no || 'Unknown'}{trip.vehicle_id?.nickname ? ` (${trip.vehicle_id.nickname})` : ''}
                                     </div>
                                     <div className="flex gap-3">
                                         <span className="text-emerald-400/80">I: ₹{(trip.income || 0).toLocaleString()}</span>
@@ -251,7 +251,9 @@ export default function DailyDashboardPage() {
                         {lists.vehicleLedgerEntriesToday.map(entry => (
                             <div key={entry._id} className="bg-slate-950 border border-slate-800 p-3 rounded-lg hover:border-slate-700 transition-colors">
                                 <div className="flex justify-between items-start mb-1">
-                                    <span className="text-sm font-medium text-white">{entry.vehicle_id?.vehicle_no || 'Unknown'} - {entry.trip_route || 'Unknown Route'}</span>
+                                    <span className="text-sm font-medium text-white">
+                                        {entry.vehicle_id?.vehicle_no || 'Unknown'}{entry.vehicle_id?.nickname ? ` (${entry.vehicle_id.nickname})` : ''} - {entry.trip_route || 'Unknown Route'}
+                                    </span>
                                 </div>
                                 <div className="flex justify-between items-center mt-2 text-xs">
                                     <span className="text-slate-500">Income: <span className="text-emerald-400">₹{(entry.income || 0).toLocaleString()}</span></span>
