@@ -3,7 +3,6 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import dbConnect from '@/lib/dbConnect';
 import Trip from '@/models/Trip';
-import AdminExpense from '@/models/AdminExpense';
 import Booking from '@/models/Booking';
 import Vehicle from '@/models/Vehicle';
 import User from '@/models/User';
@@ -63,17 +62,7 @@ export async function GET(req) {
         const totalTripIncome = tripsToday.reduce((acc, trip) => acc + (trip.income || 0), 0);
         const totalTripExpense = tripsToday.reduce((acc, trip) => acc + (trip.total_expenses || 0), 0);
 
-        // 2. Admin Expenses posted today
-        const adminExpensesObj = await AdminExpense.find({
-            ...baseQuery,
-            date: dateQuery
-        })
-            .populate('posted_by', 'name')
-            .sort({ createdAt: -1 })
-            .lean();
-
-        const adminExpensesPostedToday = adminExpensesObj || [];
-        const totalAdminExpensesPosted = adminExpensesPostedToday.reduce((acc, exp) => acc + (exp.amount || 0), 0);
+        const totalAdminExpensesPosted = 0; // AdminExpense model removed from main branch
 
         // 3. Bookings created today
         const bookingsCreatedToday = await Booking.find({
@@ -114,15 +103,7 @@ export async function GET(req) {
                 trip_date: { $lt: startOfDay }
             }).select('income total_expenses');
 
-            const prevAdminExpenses = await AdminExpense.find({
-                ...baseQuery,
-                vehicle_id: vId,
-                date: { $lt: startOfDay }
-            }).select('amount');
-
-            const historyIncome = prevTrips.reduce((acc, t) => acc + (t.income || 0), 0);
-            const historyExpense = prevTrips.reduce((acc, t) => acc + (t.total_expenses || 0), 0);
-            const historyAdminExpense = prevAdminExpenses.reduce((acc, e) => acc + (e.amount || 0), 0);
+            const historyAdminExpense = 0; // AdminExpense removed
 
             let runningBal = historyIncome - historyExpense - historyAdminExpense;
 
@@ -152,7 +133,7 @@ export async function GET(req) {
                 },
                 lists: {
                     tripsToday: finalTrips,
-                    adminExpensesPostedToday,
+                    adminExpensesPostedToday: [],
                     bookingsCreatedToday,
                     vehicleLedgerEntriesToday: finalTrips
                 },

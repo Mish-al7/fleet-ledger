@@ -170,17 +170,9 @@ export default function DailyDashboardPage() {
                     <p className="text-2xl font-bold text-white">₹{summary.totalTripExpense?.toLocaleString() || 0}</p>
                 </div>
 
-                <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 hover:border-slate-700 transition-all">
-                    <div className="flex items-center gap-3 mb-3">
-                        <div className="p-2 bg-amber-500/10 rounded-lg text-amber-400">
-                            <Wallet size={20} />
-                        </div>
-                        <h3 className="text-slate-400 text-sm font-medium">Admin Expense</h3>
-                    </div>
-                    <p className="text-2xl font-bold text-white">₹{summary.totalAdminExpensesPosted?.toLocaleString() || 0}</p>
-                </div>
 
-                <div className={`border rounded-xl p-5 transition-all ${summary.netMovementForTheDay >= 0 ? 'bg-blue-500/10 border-blue-500/20 hover:border-blue-500/40' : 'bg-rose-500/10 border-rose-500/20 hover:border-rose-500/40'}`}>
+
+                <div className={`col-span-1 md:col-span-2 lg:col-span-2 border rounded-xl p-5 transition-all ${summary.netMovementForTheDay >= 0 ? 'bg-blue-500/10 border-blue-500/20 hover:border-blue-500/40' : 'bg-rose-500/10 border-rose-500/20 hover:border-rose-500/40'}`}>
                     <div className="flex items-center gap-3 mb-3">
                         <div className={`p-2 rounded-lg ${summary.netMovementForTheDay >= 0 ? 'bg-blue-500/20 text-blue-400' : 'bg-rose-500/20 text-rose-400'}`}>
                             <DollarSign size={20} />
@@ -271,38 +263,7 @@ export default function DailyDashboardPage() {
                     </div>
                 </div>
 
-                {/* Admin Expenses */}
-                <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden flex flex-col h-[400px]">
-                    <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-900/80 sticky top-0">
-                        <div className="flex items-center gap-2">
-                            <Wallet size={18} className="text-amber-400" />
-                            <h3 className="font-bold text-white">Admin Expenses</h3>
-                        </div>
-                        <span className="text-xs font-medium px-2 py-1 bg-slate-800 text-slate-300 rounded-lg border border-slate-700">
-                            {lists.adminExpensesPostedToday.length} entries
-                        </span>
-                    </div>
-                    <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                        {lists.adminExpensesPostedToday.map(exp => (
-                            <div key={exp._id} className="bg-slate-950 border border-slate-800 p-3 rounded-lg hover:border-slate-700 transition-colors">
-                                <div className="flex justify-between items-start mb-2">
-                                    <span className="text-sm font-medium text-white">{exp.description}</span>
-                                    <span className="text-sm font-bold text-red-400">-₹{(exp.amount || 0).toLocaleString()}</span>
-                                </div>
-                                <div className="text-xs text-slate-500 flex justify-between">
-                                    <span>Category: {exp.category}</span>
-                                    <span>By: {exp.posted_by?.name || 'Unknown'}</span>
-                                </div>
-                            </div>
-                        ))}
-                        {lists.adminExpensesPostedToday.length === 0 && (
-                            <div className="h-full flex flex-col items-center justify-center text-slate-500">
-                                <Wallet size={32} className="opacity-20 mb-2" />
-                                <p className="text-sm">No admin expenses on this date.</p>
-                            </div>
-                        )}
-                    </div>
-                </div>
+
 
                 {/* Bookings */}
                 <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden flex flex-col h-[400px]">
