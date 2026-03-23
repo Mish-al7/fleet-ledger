@@ -3,6 +3,7 @@ import dbConnect from '@/lib/dbConnect';
 import Company from '@/models/Company';
 import User from '@/models/User';
 import bcrypt from 'bcryptjs';
+import { sendWelcomeEmail } from '@/utils/resend';
 
 export async function POST(req) {
     try {
@@ -55,6 +56,10 @@ export async function POST(req) {
             role: 'admin',
             company_id: company._id,
         });
+
+        // Send welcome email (asynchronously, don't block the response)
+        sendWelcomeEmail(adminEmail.toLowerCase(), adminName || name)
+            .catch(err => console.error('Failed to send welcome email:', err));
 
         return NextResponse.json(
             { success: true, message: 'Registration successful. Waiting for admin approval.' },
