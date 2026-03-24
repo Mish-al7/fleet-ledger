@@ -1,4 +1,6 @@
+import { useState, useEffect } from 'react';
 import { Calendar, MapPin, Users, Clock, Car, Phone, User, DollarSign, Save, AlertCircle, X } from 'lucide-react';
+
 import DateInput from '@/components/ui/DateInput';
 
 const InputGroup = ({ label, name, value, onChange, type = "text", icon: Icon, placeholder, required = false, rows }) => (
