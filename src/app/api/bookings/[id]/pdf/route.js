@@ -121,15 +121,16 @@ export async function GET(request, { params }) {
         drawRow(currentY, 'Address', booking.customer_address || '-');
         currentY += rowHeight;
 
+        // Package Name
+        drawRow(currentY, 'Package Name', booking.package_name || '-');
+        currentY += rowHeight;
+
         // Vehicle Info
         drawTwoColRow(currentY, 'Vehicle No.', booking.vehicle_no, 'Vehicle Type', booking.vehicle_type || '-');
         currentY += rowHeight;
 
-        // Journey Details
-        drawRow(currentY, 'Pickup', booking.pickup_location);
-        currentY += rowHeight;
-
-        drawRow(currentY, 'Destination', booking.trip_destination);
+        // Trip Route (From/To)
+        drawTwoColRow(currentY, 'Pickup (From)', booking.pickup_location || '-', 'Destination (To)', booking.trip_destination || '-');
         currentY += rowHeight;
 
         // Schedule
@@ -190,6 +191,73 @@ export async function GET(request, { params }) {
 
         doc.rect(startX + boxWidth, currentY, boxWidth, boxHeight).stroke();
         doc.text("Customer Signature", startX + boxWidth + 5, currentY + 5);
+
+        // --- PAGE 2: ITINERARY ---
+        const hasItineraryData = booking.itinerary?.some(item => (item.location?.trim() || item.remarks?.trim()));
+        
+        if (hasItineraryData) {
+            doc.addPage();
+            currentY = 50;
+
+            // Page 2 Header
+            doc.font('Helvetica-Bold').fontSize(18).text(companyName, { align: 'center' });
+            doc.fontSize(12).text('TRIP ITINERARY', { align: 'center' });
+            doc.fontSize(10).text(`Booking No: ${booking.booking_no}`, { align: 'center' });
+            doc.moveDown(1);
+            currentY = doc.y;
+
+            doc.rect(startX, currentY, contentWidth, rowHeight).stroke();
+            doc.font('Helvetica-Bold').fontSize(12).text('DETAILED ITINERARY', startX, currentY + 10, { width: contentWidth, align: 'center' });
+            currentY += rowHeight;
+
+            // Itinerary Table Headers
+            const colDayW = 60;
+            const colTimeW = 60;
+            const colLocW = (contentWidth - colDayW - colTimeW) * 0.5;
+            const colStayW = contentWidth - colDayW - colTimeW - colLocW;
+
+            function drawItineraryHeader(y) {
+                doc.rect(startX, y, colDayW, 25).stroke();
+                doc.rect(startX + colDayW, y, colTimeW, 25).stroke();
+                doc.rect(startX + colDayW + colTimeW, y, colLocW, 25).stroke();
+                doc.rect(startX + colDayW + colTimeW + colLocW, y, colStayW, 25).stroke();
+
+                doc.font('Helvetica-Bold').fontSize(10);
+                doc.text('Day', startX + 5, y + 8);
+                doc.text('Time', startX + colDayW + 5, y + 8);
+                doc.text('Location/Activity', startX + colDayW + colTimeW + 5, y + 8);
+                doc.text('Stay/Remarks', startX + colDayW + colTimeW + colLocW + 5, y + 8);
+            }
+
+            drawItineraryHeader(currentY);
+            currentY += 25;
+
+            // Itinerary Rows
+            doc.font('Helvetica').fontSize(10);
+            booking.itinerary.forEach((item) => {
+                // Check for page break
+                if (currentY > 750) {
+                    doc.addPage();
+                    currentY = 50;
+                    drawItineraryHeader(currentY);
+                    currentY += 25;
+                    doc.font('Helvetica').fontSize(10);
+                }
+
+                const itemHeight = 30;
+                doc.rect(startX, currentY, colDayW, itemHeight).stroke();
+                doc.rect(startX + colDayW, currentY, colTimeW, itemHeight).stroke();
+                doc.rect(startX + colDayW + colTimeW, currentY, colLocW, itemHeight).stroke();
+                doc.rect(startX + colDayW + colTimeW + colLocW, currentY, colStayW, itemHeight).stroke();
+
+                doc.text(item.day || '', startX + 5, currentY + 8, { width: colDayW - 10 });
+                doc.text(item.time || '', startX + colDayW + 5, currentY + 8, { width: colTimeW - 10 });
+                doc.text(item.location || '', startX + colDayW + colTimeW + 5, currentY + 8, { width: colLocW - 10 });
+                doc.text(item.remarks || '', startX + colDayW + colTimeW + colLocW + 5, currentY + 8, { width: colStayW - 10 });
+
+                currentY += itemHeight;
+            });
+        }
 
         // --- PDF CONTENT END ---
         doc.end();

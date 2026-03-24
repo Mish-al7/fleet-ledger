@@ -80,7 +80,7 @@ export async function POST(req) {
         delete body.company_id;
 
         // Validate required fields
-        const requiredFields = ['customer_name', 'customer_phone', 'pickup_location', 'trip_destination',
+        const requiredFields = ['customer_name', 'customer_phone',
             'journey_start_date', 'journey_return_date', 'trip_start_time', 'trip_end_time', 'vehicle_id'];
 
         for (const field of requiredFields) {

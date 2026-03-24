@@ -46,14 +46,22 @@ const BookingSchema = new mongoose.Schema({
     },
 
     // Trip Details
+    package_name: {
+        type: String,
+        trim: true,
+    },
+    itinerary: [{
+        day: String,
+        time: String,
+        location: String,
+        remarks: String,
+    }],
     pickup_location: {
         type: String,
-        required: [true, 'Pickup location is required'],
         trim: true,
     },
     trip_destination: {
         type: String,
-        required: [true, 'Trip destination is required'],
         trim: true,
     },
     total_persons: {

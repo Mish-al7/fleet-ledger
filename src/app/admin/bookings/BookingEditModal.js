@@ -58,6 +58,8 @@ export default function BookingEditModal({ booking, vehicles, onClose, onUpdate 
         customer_name: booking.customer_name || '',
         customer_address: booking.customer_address || '',
         customer_phone: booking.customer_phone || '',
+        package_name: booking.package_name || '',
+        itinerary: booking.itinerary || [],
         pickup_location: booking.pickup_location || '',
         trip_destination: booking.trip_destination || '',
         total_persons: booking.total_persons || '1',
@@ -134,6 +136,27 @@ export default function BookingEditModal({ booking, vehicles, onClose, onUpdate 
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
+    const addItineraryRow = () => {
+        setFormData(prev => ({
+            ...prev,
+            itinerary: [...prev.itinerary, { day: `Day ${prev.itinerary.length + 1}`, time: '09:00', location: '', remarks: '' }]
+        }));
+    };
+
+    const removeItineraryRow = (index) => {
+        if (formData.itinerary.length === 1) return;
+        setFormData(prev => ({
+            ...prev,
+            itinerary: prev.itinerary.filter((_, i) => i !== index)
+        }));
+    };
+
+    const handleItineraryChange = (index, field, value) => {
+        const updatedItinerary = [...formData.itinerary];
+        updatedItinerary[index] = { ...updatedItinerary[index], [field]: value };
+        setFormData(prev => ({ ...prev, itinerary: updatedItinerary }));
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setSubmitting(true);
@@ -192,6 +215,13 @@ export default function BookingEditModal({ booking, vehicles, onClose, onUpdate 
 
                         <div className="h-px bg-slate-800" />
 
+                        {/* Package Name */}
+                        <div className="space-y-4">
+                            <InputGroup label="Package Name" name="package_name" value={formData.package_name} onChange={handleChange} icon={Car} placeholder="Tour package name" />
+                        </div>
+
+                        <div className="h-px bg-slate-800" />
+
                         {/* Customer Details */}
                         <div className="space-y-4">
                             <h3 className="text-sm font-medium text-emerald-400 flex items-center gap-2">
@@ -203,6 +233,88 @@ export default function BookingEditModal({ booking, vehicles, onClose, onUpdate 
                         </div>
 
                         <div className="h-px bg-slate-800" />
+
+                        {/* Itinerary Section */}
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-sm font-medium text-purple-400 flex items-center gap-2">
+                                    <MapPin size={16} /> Dynamic Itinerary
+                                </h3>
+                                <button
+                                    type="button"
+                                    onClick={addItineraryRow}
+                                    className="text-xs px-3 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-lg hover:bg-blue-500/20 transition-all"
+                                >
+                                    + Add Day
+                                </button>
+                            </div>
+
+                            {formData.itinerary.length > 0 ? (
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-xs text-left">
+                                        <thead>
+                                            <tr className="border-b border-slate-700">
+                                                <th className="pb-2 font-semibold text-slate-400 w-20">Day</th>
+                                                <th className="pb-2 font-semibold text-slate-400 w-24">Time</th>
+                                                <th className="pb-2 font-semibold text-slate-400">Location/Activity</th>
+                                                <th className="pb-2 font-semibold text-slate-400">Stay/Remarks</th>
+                                                <th className="pb-2 w-8"></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-800">
+                                            {formData.itinerary.map((row, index) => (
+                                                <tr key={index} className="group">
+                                                    <td className="py-2 pr-2">
+                                                        <input
+                                                            value={row.day}
+                                                            onChange={(e) => handleItineraryChange(index, 'day', e.target.value)}
+                                                            className="w-full bg-slate-800/30 border border-slate-700 rounded px-2 py-1 text-white focus:border-blue-500 outline-none"
+                                                        />
+                                                    </td>
+                                                    <td className="py-2 pr-2">
+                                                        <input
+                                                            type="time"
+                                                            value={row.time}
+                                                            onChange={(e) => handleItineraryChange(index, 'time', e.target.value)}
+                                                            className="w-full bg-slate-800/30 border border-slate-700 rounded px-2 py-1 text-white focus:border-blue-500 outline-none"
+                                                        />
+                                                    </td>
+                                                    <td className="py-2 pr-2">
+                                                        <input
+                                                            value={row.location}
+                                                            onChange={(e) => handleItineraryChange(index, 'location', e.target.value)}
+                                                            placeholder="Activity..."
+                                                            className="w-full bg-slate-800/30 border border-slate-700 rounded px-2 py-1 text-white focus:border-blue-500 outline-none"
+                                                        />
+                                                    </td>
+                                                    <td className="py-2 pr-2">
+                                                        <input
+                                                            value={row.remarks}
+                                                            onChange={(e) => handleItineraryChange(index, 'remarks', e.target.value)}
+                                                            placeholder="Remarks..."
+                                                            className="w-full bg-slate-800/30 border border-slate-700 rounded px-2 py-1 text-white focus:border-blue-500 outline-none"
+                                                        />
+                                                    </td>
+                                                    <td className="py-2">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => removeItineraryRow(index)}
+                                                            className="text-red-400 opacity-0 group-hover:opacity-100 transition-opacity p-1"
+                                                        >
+                                                            <X size={14} />
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            ) : (
+                                <div className="py-8 text-center bg-slate-800/20 border border-dashed border-slate-700 rounded-xl">
+                                    <p className="text-slate-500 text-sm">No itinerary added. Click "+ Add Day" to include one.</p>
+                                </div>
+                            )}
+                        </div>
 
                         {/* Trip Details */}
                         <div className="space-y-4">

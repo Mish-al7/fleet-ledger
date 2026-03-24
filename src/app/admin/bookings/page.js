@@ -47,6 +47,16 @@ const BookingDetailModal = ({ booking, onClose, onApprove, onReject, actionLoadi
                         <StatusBadge status={booking.status} />
                     </div>
 
+                    {booking.package_name && (
+                        <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 flex items-center gap-3">
+                            <Car className="text-blue-400" size={20} />
+                            <div>
+                                <div className="text-xs text-slate-500 uppercase font-bold tracking-wider">Package Name</div>
+                                <div className="text-white font-medium">{booking.package_name}</div>
+                            </div>
+                        </div>
+                    )}
+
                     <div className="grid grid-cols-2 gap-6">
                         {/* Vehicle */}
                         <div className="bg-slate-800/50 rounded-xl p-4">
@@ -68,12 +78,43 @@ const BookingDetailModal = ({ booking, onClose, onApprove, onReject, actionLoadi
                         </div>
                     </div>
 
-                    {/* Trip */}
+                    {/* Itinerary */}
+                    {booking.itinerary?.some(item => (item.location?.trim() || item.remarks?.trim())) && (
+                        <div className="bg-slate-800/50 rounded-xl p-4 overflow-hidden">
+                            <h3 className="text-sm font-medium text-purple-400 mb-3 flex items-center gap-2">
+                                <MapPin size={16} /> Extended Itinerary
+                            </h3>
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-xs text-left">
+                                    <thead>
+                                        <tr className="border-b border-slate-700">
+                                            <th className="pb-2 font-semibold text-slate-500 w-16">Day</th>
+                                            <th className="pb-2 font-semibold text-slate-500 w-16">Time</th>
+                                            <th className="pb-2 font-semibold text-slate-500">Location</th>
+                                            <th className="pb-2 font-semibold text-slate-500">Remarks</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-800">
+                                        {booking.itinerary.map((row, idx) => (
+                                            <tr key={idx}>
+                                                <td className="py-2 pr-2 text-white">{row.day}</td>
+                                                <td className="py-2 pr-2 text-slate-300">{row.time}</td>
+                                                <td className="py-2 pr-2 text-white">{row.location || '-'}</td>
+                                                <td className="py-2 text-slate-400 italic">{row.remarks || '-'}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Trip (Fallback/Summary) */}
                     <div className="bg-slate-800/50 rounded-xl p-4">
-                        <h3 className="text-sm font-medium text-purple-400 mb-3">Trip Details</h3>
+                        <h3 className="text-sm font-medium text-purple-400 mb-3">Trip Summary</h3>
                         <div className="grid grid-cols-2 gap-4 text-sm">
-                            <div><span className="text-slate-500">Pickup:</span> <span className="text-white">{booking.pickup_location}</span></div>
-                            <div><span className="text-slate-500">Destination:</span> <span className="text-white">{booking.trip_destination}</span></div>
+                            <div><span className="text-slate-500">Pickup:</span> <span className="text-white">{booking.pickup_location || '-'}</span></div>
+                            <div><span className="text-slate-500">Destination:</span> <span className="text-white">{booking.trip_destination || '-'}</span></div>
                             <div><span className="text-slate-500">Persons:</span> <span className="text-white">{booking.total_persons}</span></div>
                             <div><span className="text-slate-500">Night Halts:</span> <span className="text-white">{booking.night_halt_places || '-'}</span></div>
                         </div>
@@ -451,6 +492,7 @@ export default function AdminBookingsPage() {
                                     <th className="px-4 py-3 text-left text-slate-400 font-medium">Booking #</th>
                                     <th className="px-4 py-3 text-left text-slate-400 font-medium">Vehicle</th>
                                     <th className="px-4 py-3 text-left text-slate-400 font-medium">Customer</th>
+                                    <th className="px-4 py-3 text-left text-slate-400 font-medium">Package</th>
                                     <th className="px-4 py-3 text-left text-slate-400 font-medium">Route</th>
                                     <th className="px-4 py-3 text-left text-slate-400 font-medium">Dates</th>
                                     <th className="px-4 py-3 text-left text-slate-400 font-medium">Status</th>
@@ -466,8 +508,11 @@ export default function AdminBookingsPage() {
                                             <div className="text-white">{booking.customer_name}</div>
                                             <div className="text-xs text-slate-500">{booking.customer_phone}</div>
                                         </td>
+                                        <td className="px-4 py-3 text-slate-300 truncate max-w-[150px]">
+                                            {booking.package_name || '-'}
+                                        </td>
                                         <td className="px-4 py-3 text-slate-300 max-w-[200px] truncate">
-                                            {booking.pickup_location} → {booking.trip_destination}
+                                            {booking.pickup_location || '-'} → {booking.trip_destination || '-'}
                                         </td>
                                         <td className="px-4 py-3 text-slate-300 text-xs">
                                             {formatDate(booking.journey_start_date)} - {formatDate(booking.journey_return_date)}

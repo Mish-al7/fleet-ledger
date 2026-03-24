@@ -33,6 +33,11 @@ const BookingCard = ({ booking, onViewDetails }) => (
         <div className="flex items-start justify-between">
             <div>
                 <div className="text-sm font-medium text-white">{booking.booking_no}</div>
+                {booking.package_name && (
+                    <div className="text-[10px] text-blue-400 font-bold uppercase tracking-wider mt-0.5">
+                        {booking.package_name}
+                    </div>
+                )}
                 <div className="text-xs text-slate-500">{formatDate(booking.booking_date)}</div>
             </div>
             <StatusBadge status={booking.status} />
@@ -91,6 +96,13 @@ const BookingDetailModal = ({ booking, onClose }) => {
                         <StatusBadge status={booking.status} />
                     </div>
 
+                    {booking.package_name && (
+                        <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-3">
+                            <div className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Package</div>
+                            <div className="text-sm text-white font-medium">{booking.package_name}</div>
+                        </div>
+                    )}
+
                     <div className="grid grid-cols-2 gap-4 text-sm">
                         <div>
                             <div className="text-slate-500">Vehicle</div>
@@ -102,6 +114,23 @@ const BookingDetailModal = ({ booking, onClose }) => {
                         </div>
                     </div>
 
+                    {booking.itinerary?.some(item => (item.location?.trim() || item.remarks?.trim())) && (
+                        <div className="border-t border-slate-800 pt-4">
+                            <h3 className="text-sm font-medium text-purple-400 mb-2">Itinerary</h3>
+                            <div className="space-y-3">
+                                {booking.itinerary.map((row, idx) => (
+                                    <div key={idx} className="flex gap-3 text-xs border-l-2 border-slate-800 pl-3">
+                                        <div className="shrink-0 w-12 font-medium text-slate-400">{row.time}</div>
+                                        <div className="flex-1">
+                                            <div className="text-white font-medium">{row.day}: {row.location || '-'}</div>
+                                            {row.remarks && <div className="text-slate-500 italic mt-0.5">{row.remarks}</div>}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
                     <div className="border-t border-slate-800 pt-4">
                         <h3 className="text-sm font-medium text-emerald-400 mb-2">Customer</h3>
                         <div className="space-y-1 text-sm">
@@ -112,10 +141,10 @@ const BookingDetailModal = ({ booking, onClose }) => {
                     </div>
 
                     <div className="border-t border-slate-800 pt-4">
-                        <h3 className="text-sm font-medium text-purple-400 mb-2">Trip</h3>
+                        <h3 className="text-sm font-medium text-purple-400 mb-2">Trip Summary</h3>
                         <div className="space-y-1 text-sm">
-                            <div><span className="text-slate-500">Pickup:</span> <span className="text-white">{booking.pickup_location}</span></div>
-                            <div><span className="text-slate-500">Destination:</span> <span className="text-white">{booking.trip_destination}</span></div>
+                            <div><span className="text-slate-500">Pickup:</span> <span className="text-white">{booking.pickup_location || '-'}</span></div>
+                            <div><span className="text-slate-500">Destination:</span> <span className="text-white">{booking.trip_destination || '-'}</span></div>
                             <div><span className="text-slate-500">Persons:</span> <span className="text-white">{booking.total_persons}</span></div>
                         </div>
                     </div>
