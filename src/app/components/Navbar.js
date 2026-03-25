@@ -16,17 +16,17 @@ export default function Navbar() {
 
                 <Link href="/trips/new" className={`flex flex-col items-center gap-1 shrink-0 ${isActive('/trips/new')}`}>
                     <PlusCircle size={22} />
-                    <span className="text-xs font-medium">New</span>
+                    <span className="text-xs font-medium">New Trip</span>
                 </Link>
 
                 <Link href="/trips" className={`flex flex-col items-center gap-1 shrink-0 ${isActive('/trips')}`}>
                     <History size={22} />
-                    <span className="text-xs font-medium">Trips</span>
+                    <span className="text-xs font-medium">Recent Trips</span>
                 </Link>
 
                 <Link href="/bookings/new" className={`flex flex-col items-center gap-1 shrink-0 ${isActive('/bookings/new')}`}>
                     <CalendarPlus size={22} />
-                    <span className="text-xs font-medium">Book</span>
+                    <span className="text-xs font-medium">New Booking</span>
                 </Link>
 
                 <Link href="/bookings" className={`flex flex-col items-center gap-1 shrink-0 ${isActive('/bookings')}`}>
@@ -36,7 +36,7 @@ export default function Navbar() {
 
                 <Link href="/profile/change-password" className={`flex flex-col items-center gap-1 shrink-0 ${isActive('/profile/change-password')}`}>
                     <Lock size={22} />
-                    <span className="text-xs font-medium">Pwd</span>
+                    <span className="text-xs font-medium">Password</span>
                 </Link>
 
                 <button
