@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import dbConnect from '@/lib/dbConnect';
 import User from '@/models/User';
+import Vehicle from '@/models/Vehicle'; // Ensure schema is registered for populate
 import bcrypt from 'bcryptjs';
 
 // GET: List all users in this company

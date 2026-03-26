@@ -93,8 +93,9 @@ export async function GET(req, { params }) {
                     const d = new Date(expense.start_date);
                     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
                 })(),
-                trip_route: '',
-                description: `Admin Expense – ${expense.expense_type}: ${expense.description}`,
+                trip_route: `Admin Exp: ${expense.expense_type}`,
+                actual_driver_name: 'Admin',
+                notes: expense.description,
                 income: 0,
                 total_expenses: expense.amount || 0,
                 is_admin_expense: true,
