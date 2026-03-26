@@ -20,7 +20,7 @@ export async function GET(req) {
 
         // Return vehicles within this company
         const vehicles = await Vehicle.find({ company_id, status: 'active' })
-            .select('vehicle_no status')
+            .select('vehicle_no status nickname')
             .sort({ vehicle_no: 1 })
             .lean();
 

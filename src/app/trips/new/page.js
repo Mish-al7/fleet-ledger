@@ -196,7 +196,7 @@ export default function NewTripPage() {
                                     <option>Loading...</option>
                                 ) : (
                                     vehicles.map(v => (
-                                        <option key={v._id} value={v._id}>{v.vehicle_no}</option>
+                                        <option key={v._id} value={v._id}>{v.vehicle_no}{v.nickname ? ` - ${v.nickname}` : ''}</option>
                                     ))
                                 )}
                             </select>

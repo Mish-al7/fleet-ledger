@@ -423,7 +423,7 @@ export default function ReportsPage() {
                                 >
                                     <option value="">All Vehicles</option>
                                     {vehicles.map(v => (
-                                        <option key={v._id} value={v._id}>{v.vehicle_no}</option>
+                                        <option key={v._id} value={v._id}>{v.vehicle_no}{v.nickname ? ` - ${v.nickname}` : ''}</option>
                                     ))}
                                 </select>
                                 <ChevronDown size={12} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />

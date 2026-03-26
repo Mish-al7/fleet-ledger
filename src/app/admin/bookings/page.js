@@ -383,7 +383,7 @@ export default function AdminBookingsPage() {
                         >
                             <option value="">All Vehicles</option>
                             {vehicles.map(v => (
-                                <option key={v._id} value={v._id}>{v.vehicle_no}</option>
+                                <option key={v._id} value={v._id}>{v.vehicle_no}{v.nickname ? ` - ${v.nickname}` : ''}</option>
                             ))}
                         </select>
                         <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
