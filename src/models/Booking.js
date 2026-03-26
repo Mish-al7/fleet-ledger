@@ -194,32 +194,23 @@ BookingSchema.statics.checkVehicleAvailability = async function (vehicleId, star
         return { available: true, conflicts: [] };
     }
 
-    // For same-day bookings, check time overlap
-    // Time overlap: existing.startTime < new.endTime AND existing.endTime > new.startTime
+    // Check accurate time overlap for both single and multi-day bookings
+    // Time overlap: existing.start < new.end AND existing.end > new.start
     const timeConflicts = conflictingBookings.filter(booking => {
-        // Convert times to comparable numbers (minutes from midnight)
-        const toMinutes = (timeStr) => {
+        // Helper to combine date and time into a single numeric timestamp
+        const combineDateTime = (dateObj, timeStr) => {
+            const date = new Date(dateObj);
             const [hours, minutes] = timeStr.split(':').map(Number);
-            return hours * 60 + minutes;
+            date.setHours(hours, minutes, 0, 0);
+            return date.getTime();
         };
 
-        const existingStart = toMinutes(booking.trip_start_time);
-        const existingEnd = toMinutes(booking.trip_end_time);
-        const newStart = toMinutes(startTime);
-        const newEnd = toMinutes(endTime);
+        const existingStart = combineDateTime(booking.journey_start_date, booking.trip_start_time);
+        const existingEnd = combineDateTime(booking.journey_return_date, booking.trip_end_time);
+        const newStart = combineDateTime(startDate, startTime);
+        const newEnd = combineDateTime(endDate, endTime);
 
-        // Check if dates are exactly the same (single-day overlap)
-        const bookingStartDate = new Date(booking.journey_start_date).toDateString();
-        const bookingEndDate = new Date(booking.journey_return_date).toDateString();
-        const newStartDate = new Date(startDate).toDateString();
-        const newEndDate = new Date(endDate).toDateString();
-
-        // If booking spans multiple days, any overlap is a conflict
-        if (bookingStartDate !== bookingEndDate || newStartDate !== newEndDate) {
-            return true;
-        }
-
-        // Single-day booking: check time overlap
+        // Single and multi-day booking: check absolute time overlap
         return existingStart < newEnd && existingEnd > newStart;
     });
 
