@@ -73,7 +73,7 @@ export default function EditTripModal({ trip, onClose, onUpdate }) {
     useEffect(() => {
         async function fetchVehicles() {
             try {
-                const res = await fetch('/api/vehicles');
+                const res = await fetch('/api/user/vehicles');
                 const json = await res.json();
                 if (json.success) {
                     setVehicles(json.data);
@@ -128,16 +128,16 @@ export default function EditTripModal({ trip, onClose, onUpdate }) {
     if (!trip) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
             <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
                 <div className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur border-b border-slate-800 px-6 py-4 flex items-center justify-between">
                     <h2 className="text-xl font-bold text-white">Edit Trip</h2>
-                    <button onClick={onClose} className="p-2 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white transition-colors">
+                    <button type="button" onClick={onClose} className="p-2 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white transition-colors">
                         <X size={20} />
                     </button>
                 </div>
 
-                <div className="p-6">
+                <div className="p-6 pb-8">
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {error && (
                             <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">

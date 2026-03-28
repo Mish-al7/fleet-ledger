@@ -29,8 +29,7 @@ export async function PUT(req, { params }) {
         const session = await getServerSession(authOptions);
         if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-        // Ensure only admin can edit
-        if (session.user.role !== 'admin') {
+        if (session.user.role !== 'admin' && session.user.role !== 'driver') {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
@@ -43,8 +42,14 @@ export async function PUT(req, { params }) {
 
         await dbConnect();
 
-        const trip = await Trip.findOne({ _id: id, company_id });
-        if (!trip) return NextResponse.json({ error: 'Trip not found' }, { status: 404 });
+        const query = { _id: id, company_id };
+        // Drivers can only update their own trips
+        if (session.user.role === 'driver') {
+            query.driver_id = session.user.id;
+        }
+
+        const trip = await Trip.findOne(query);
+        if (!trip) return NextResponse.json({ error: 'Trip not found or unauthorized' }, { status: 404 });
 
         // Update fields
         Object.keys(body).forEach(key => {
