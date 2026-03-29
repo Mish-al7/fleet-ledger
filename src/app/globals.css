@@ -41,3 +41,11 @@ input[type=number] {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Make date/time picker icons visible on dark theme backgrounds */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="month"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+}
