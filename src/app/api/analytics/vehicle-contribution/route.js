@@ -49,7 +49,7 @@ export async function GET(req) {
                     as: 'vehicle',
                 },
             },
-            { $unwind: { path: '$vehicle', preserveNullAndEmpty: false } },
+            { $unwind: { path: '$vehicle', preserveNullAndEmptyArrays: false } },
             {
                 $project: {
                     _id: 0,
