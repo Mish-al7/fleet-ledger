@@ -16,67 +16,53 @@ export async function GET(req) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const companyId = session.user.company_id;
-        // build base query - only add company_id if it exists in session
-        // this allows support for current single-tenant mode while being ready for multi-tenancy
-        const baseQuery = companyId ? { company_id: companyId } : {};
-
         await dbConnect();
 
         const { searchParams } = new URL(req.url);
         const dateParam = searchParams.get('date');
 
-        // Parse date (default to today if missing)
         let targetDate = new Date();
         if (dateParam) {
             targetDate = new Date(dateParam);
-            // Verify date is valid
             if (isNaN(targetDate.getTime())) {
                 return NextResponse.json({ error: 'Invalid date format' }, { status: 400 });
             }
         }
 
-        // Create start and end of the day in local timezone context or standard UTC depending on how you store 
-        // We will query starting 00:00:00 and ending 23:59:59
         const startOfDay = new Date(targetDate);
         startOfDay.setHours(0, 0, 0, 0);
 
         const endOfDay = new Date(targetDate);
         endOfDay.setHours(23, 59, 59, 999);
 
-        // Date Query object
         const dateQuery = {
             $gte: startOfDay,
             $lte: endOfDay
         };
 
-        // 1. Trips matching company_id and trip_date
+        // 1. Trips today
         const tripsToday = await Trip.find({
-            ...baseQuery,
             trip_date: dateQuery
         })
             .populate('vehicle_id', 'vehicle_no nickname')
             .populate('driver_id', 'name')
             .sort({ createdAt: -1 })
             .lean();
+
         const totalTripIncome = tripsToday.reduce((acc, trip) => acc + (trip.income || 0), 0);
         const totalTripExpense = tripsToday.reduce((acc, trip) => acc + (trip.total_expenses || 0), 0);
 
-        const totalAdminExpensesPosted = 0; // AdminExpense model removed from main branch
-
-        // 3. Bookings created today
+        // 2. Bookings created today
         const bookingsCreatedToday = await Booking.find({
-            ...baseQuery,
             createdAt: dateQuery
         })
             .sort({ createdAt: -1 })
             .lean();
 
-        // 4. Net Movement Calculation
-        const netMovementForTheDay = totalTripIncome - totalTripExpense - totalAdminExpensesPosted;
+        // 3. Net Movement Calculation (Trip only as requested)
+        const netMovementForTheDay = totalTripIncome - totalTripExpense;
 
-        // 5. Enhance Trips with Profit and Calculate Running Balances
-        // Group trips by vehicle to calculate running balance efficiently
+        // 4. Group trips by vehicle for running balance calculation
         const tripsByVehicle = {};
         tripsToday.forEach(trip => {
             const vId = trip.vehicle_id?._id?.toString() || 'unknown';
@@ -89,26 +75,24 @@ export async function GET(req) {
 
         const enhancedTrips = [];
 
-        // For each vehicle, calculate the balance path
         for (const [vId, vehicleTrips] of Object.entries(tripsByVehicle)) {
             if (vId === 'unknown') {
                 enhancedTrips.push(...vehicleTrips);
                 continue;
             }
 
-            // 1. Get history balance (all trips and vehicle admin expenses before today)
+            // Get historical totals for this vehicle BEFORE today
             const prevTrips = await Trip.find({
-                ...baseQuery,
                 vehicle_id: vId,
                 trip_date: { $lt: startOfDay }
             }).select('income total_expenses');
 
-            const historyAdminExpense = 0; // AdminExpense removed
+            const historyIncome = prevTrips.reduce((acc, t) => acc + (t.income || 0), 0);
+            const historyExpense = prevTrips.reduce((acc, t) => acc + (t.total_expenses || 0), 0);
+            
+            let runningBal = historyIncome - historyExpense;
 
-            let runningBal = historyIncome - historyExpense - historyAdminExpense;
-
-            // 2. Sort today's trips chronologically to apply running balance
-            // (The API returned them descending by default, we sort 1 for calculation)
+            // Sort today's trips for this vehicle chronologically
             const sortedToday = [...vehicleTrips].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
 
             const withBalance = sortedToday.map(t => {
@@ -119,7 +103,6 @@ export async function GET(req) {
             enhancedTrips.push(...withBalance);
         }
 
-        // Sort back to descending for the list
         const finalTrips = enhancedTrips.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
         return NextResponse.json({
@@ -128,7 +111,7 @@ export async function GET(req) {
                 summary: {
                     totalTripIncome,
                     totalTripExpense,
-                    totalAdminExpensesPosted,
+                    totalAdminExpensesPosted: 0,
                     netMovementForTheDay
                 },
                 lists: {

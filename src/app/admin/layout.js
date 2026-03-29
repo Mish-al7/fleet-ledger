@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, FileText, Settings, LogOut, Truck, Users, CalendarCheck, Wallet, Cog, Lock } from 'lucide-react';
+import { LayoutDashboard, FileText, Settings, LogOut, Truck, Users, CalendarCheck, Wallet, Cog, Lock, Calendar, FileBarChart } from 'lucide-react';
 import { signOut, useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
@@ -61,6 +61,8 @@ export default function AdminLayout({ children }) {
 
                 <nav className="px-4 pb-4 space-y-2 overflow-x-auto md:overflow-visible flex md:flex-col gap-2 md:gap-0">
                     <NavItem href="/admin/summary" icon={LayoutDashboard} label="Summary" />
+                    <NavItem href="/admin/daily" icon={Calendar} label="Daily Dashboard" />
+                    <NavItem href="/admin/reports" icon={FileBarChart} label="Reports" />
                     <NavItem href="/admin/ledger" icon={FileText} label="Ledgers" />
                     <NavItem href="/admin/vehicles" icon={Truck} label="Vehicles" />
                     <NavItem href="/admin/drivers" icon={Users} label="Drivers" />

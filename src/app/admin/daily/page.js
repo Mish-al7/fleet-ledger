@@ -2,8 +2,17 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Calendar as CalendarIcon, Wallet, FileText, Truck, CalendarCheck, TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
+import { 
+    Calendar as CalendarIcon, 
+    FileText, 
+    Truck, 
+    CalendarCheck, 
+    TrendingUp, 
+    TrendingDown, 
+    DollarSign 
+} from 'lucide-react';
 import { formatDate } from '@/lib/dateUtils';
+import DateInput from '@/app/components/DateInput';
 
 export default function DailyDashboardPage() {
     const router = useRouter();
@@ -28,7 +37,6 @@ export default function DailyDashboardPage() {
         if (paramDate && paramDate !== selectedDate) {
             setSelectedDate(paramDate);
         } else if (!paramDate && selectedDate !== getTodayStr()) {
-            // If URL loses query param, enforce today
             handleDateChange(getTodayStr());
         }
     }, [searchParams, selectedDate]);
@@ -83,7 +91,6 @@ export default function DailyDashboardPage() {
     const summary = data?.summary || {};
     const lists = data?.lists || {
         tripsToday: [],
-        adminExpensesPostedToday: [],
         bookingsCreatedToday: [],
         vehicleLedgerEntriesToday: []
     };
@@ -128,17 +135,11 @@ export default function DailyDashboardPage() {
                     >
                         Day Before
                     </button>
-                    <div className="relative flex items-center border border-slate-700 rounded-lg overflow-hidden focus-within:border-emerald-500 transition-colors">
-                        <div className="pl-3 pr-2 py-2 bg-slate-800 flex items-center justify-center border-r border-slate-700">
-                            <CalendarIcon size={16} className="text-slate-400" />
-                        </div>
-                        <input
-                            type="date"
-                            value={selectedDate}
-                            onChange={(e) => handleDateChange(e.target.value)}
-                            className="bg-slate-800 text-white text-sm px-3 py-2 outline-none w-[130px] cursor-pointer"
-                        />
-                    </div>
+                    <DateInput
+                        value={selectedDate}
+                        onChange={(e) => handleDateChange(e.target.value)}
+                        className="bg-slate-800 text-white text-sm px-3 py-2 outline-none w-[130px] cursor-pointer border border-slate-700 rounded-lg overflow-hidden focus-within:border-emerald-500 transition-colors"
+                    />
                 </div>
             </div>
 
@@ -149,7 +150,7 @@ export default function DailyDashboardPage() {
             )}
 
             {/* Summary KPI Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 hover:border-slate-700 transition-all">
                     <div className="flex items-center gap-3 mb-3">
                         <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-400">
@@ -170,9 +171,7 @@ export default function DailyDashboardPage() {
                     <p className="text-2xl font-bold text-white">₹{summary.totalTripExpense?.toLocaleString() || 0}</p>
                 </div>
 
-
-
-                <div className={`col-span-1 md:col-span-2 lg:col-span-2 border rounded-xl p-5 transition-all ${summary.netMovementForTheDay >= 0 ? 'bg-blue-500/10 border-blue-500/20 hover:border-blue-500/40' : 'bg-rose-500/10 border-rose-500/20 hover:border-rose-500/40'}`}>
+                <div className={`border rounded-xl p-5 transition-all ${summary.netMovementForTheDay >= 0 ? 'bg-blue-500/10 border-blue-500/20 hover:border-blue-500/40' : 'bg-rose-500/10 border-rose-500/20 hover:border-rose-500/40'}`}>
                     <div className="flex items-center gap-3 mb-3">
                         <div className={`p-2 rounded-lg ${summary.netMovementForTheDay >= 0 ? 'bg-blue-500/20 text-blue-400' : 'bg-rose-500/20 text-rose-400'}`}>
                             <DollarSign size={20} />
@@ -263,10 +262,8 @@ export default function DailyDashboardPage() {
                     </div>
                 </div>
 
-
-
                 {/* Bookings */}
-                <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden flex flex-col h-[400px]">
+                <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden flex flex-col h-[400px] lg:col-span-2">
                     <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-900/80 sticky top-0">
                         <div className="flex items-center gap-2">
                             <CalendarCheck size={18} className="text-purple-400" />
@@ -276,7 +273,7 @@ export default function DailyDashboardPage() {
                             {lists.bookingsCreatedToday.length} entries
                         </span>
                     </div>
-                    <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                    <div className="flex-1 overflow-y-auto p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                         {lists.bookingsCreatedToday.map(booking => (
                             <div key={booking._id} className="bg-slate-950 border border-slate-800 p-3 rounded-lg hover:border-slate-700 transition-colors">
                                 <div className="flex justify-between items-start mb-2">
@@ -298,7 +295,7 @@ export default function DailyDashboardPage() {
                             </div>
                         ))}
                         {lists.bookingsCreatedToday.length === 0 && (
-                            <div className="h-full flex flex-col items-center justify-center text-slate-500">
+                            <div className="h-full col-span-2 flex flex-col items-center justify-center text-slate-500">
                                 <CalendarCheck size={32} className="opacity-20 mb-2" />
                                 <p className="text-sm">No bookings created on this date.</p>
                             </div>
