@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import dbConnect from '@/lib/dbConnect';
 import Trip from '@/models/Trip';
+import Vehicle from '@/models/Vehicle';
 import mongoose from 'mongoose';
 
 async function buildPdf(title, headers, rows, labelMap) {
