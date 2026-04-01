@@ -5,6 +5,8 @@ import dbConnect from '@/lib/dbConnect';
 import Trip from '@/models/Trip';
 import AdminExpense from '@/models/AdminExpense';
 import AdminCashLedger from '@/models/AdminCashLedger';
+import Vehicle from '@/models/Vehicle';
+import User from '@/models/User';
 import mongoose from 'mongoose';
 
 // ─── Aggregation helpers (same logic as individual report routes) ────────────

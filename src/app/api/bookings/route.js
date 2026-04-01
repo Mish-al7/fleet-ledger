@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import dbConnect from '@/lib/dbConnect';
 import Booking from '@/models/Booking';
 import Vehicle from '@/models/Vehicle';
+import User from '@/models/User';
 
 // GET - List bookings (driver: own only, admin: all within company)
 export async function GET(req) {
