@@ -125,7 +125,7 @@ export async function POST(req) {
             created_by: session.user.id,
             company_id,
             vehicle_no: vehicle.vehicle_no,
-            status: 'pending',
+            status: role === 'admin' ? 'approved' : 'pending',
         });
 
         // Populate response
