@@ -48,10 +48,7 @@ export async function GET(req, { params }) {
 
         const expenses = await AdminExpense.find({
             company_id,
-            $or: [
-                { vehicle_id: vehicleId },
-                { vehicle_id: null }
-            ],
+            vehicle_id: vehicleId,
             start_date: { $gte: startOfYear, $lt: endOfYear },
             status: 'Completed'
         }).sort({ start_date: 1 }).lean();
