@@ -199,7 +199,7 @@ export async function GET(req) {
                 { category: 'AdBlue', amount: te.adblue || 0 },
                 { category: 'Grease', amount: te.grease || 0 },
                 { category: 'Air', amount: te.air || 0 },
-                { category: 'Deposit to KDR Bank', amount: te.deposit_to_kdr_bank || 0 },
+                { category: 'Deposit to Bank', amount: te.deposit_to_kdr_bank || 0 },
                 { category: 'Other', amount: te.other_expense || 0 },
             ].filter(r => r.amount > 0);
         }
