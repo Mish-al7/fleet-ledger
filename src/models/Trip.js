@@ -98,4 +98,7 @@ TripSchema.pre('validate', function () {
     );
 });
 
+// Add compound index for ledger querying
+TripSchema.index({ company_id: 1, vehicle_id: 1, trip_date: 1 });
+
 export default mongoose.models.Trip || mongoose.model('Trip', TripSchema);

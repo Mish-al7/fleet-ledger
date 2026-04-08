@@ -65,5 +65,6 @@ AdminExpenseSchema.index({ frequency: 1 });
 AdminExpenseSchema.index({ start_date: -1 });
 AdminExpenseSchema.index({ recurring_master_id: 1 });
 AdminExpenseSchema.index({ status: 1 });
+AdminExpenseSchema.index({ company_id: 1, vehicle_id: 1, start_date: 1 });
 
 export default mongoose.models.AdminExpense || mongoose.model('AdminExpense', AdminExpenseSchema);
