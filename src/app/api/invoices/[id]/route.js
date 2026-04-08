@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/dbConnect';
 import Invoice from '@/models/Invoice';
+import Vehicle from '@/models/Vehicle';
+import Booking from '@/models/Booking';
+import User from '@/models/User';
+import Company from '@/models/Company';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 

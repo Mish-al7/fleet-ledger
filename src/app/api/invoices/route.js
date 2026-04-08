@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/dbConnect';
 import Invoice from '@/models/Invoice';
-import Booking from '@/models/Booking'; // For booking reference if needed
-import Vehicle from '@/models/Vehicle'; // For vehicle reference
+import Booking from '@/models/Booking';
+import Vehicle from '@/models/Vehicle';
+import User from '@/models/User';
+import Company from '@/models/Company';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 
