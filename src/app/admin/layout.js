@@ -7,6 +7,8 @@ import { signOut, useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
+import NotificationBell from '@/components/ui/NotificationBell';
+
 export default function AdminLayout({ children }) {
     const pathname = usePathname();
     const router = useRouter();
@@ -61,12 +63,15 @@ export default function AdminLayout({ children }) {
                         Admin Portal
                     </h1>
                 </div>
-                <button
-                    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                    className="p-2 -mr-2 text-slate-400 hover:text-white"
-                >
-                    {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-                </button>
+                <div className="flex items-center gap-4">
+                    <NotificationBell />
+                    <button
+                        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                        className="p-2 -mr-2 text-slate-400 hover:text-white"
+                    >
+                        {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                    </button>
+                </div>
             </header>
 
             {/* Mobile Overlay */}
@@ -80,10 +85,15 @@ export default function AdminLayout({ children }) {
             {/* Sidebar */}
             <aside className={`fixed md:sticky top-0 left-0 h-full max-h-screen w-64 bg-slate-900 border-r border-slate-800 flex-shrink-0 flex flex-col z-40 transition-transform duration-300 ease-in-out ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
                 <div className="p-6 hidden md:block">
-                    <h1 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
-                        Admin Portal
-                    </h1>
-                    <p className="text-xs text-slate-500 mt-1">Fleet Ledger System</p>
+                    <div className="flex justify-between items-start">
+                        <div>
+                            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
+                                Admin Portal
+                            </h1>
+                            <p className="text-xs text-slate-500 mt-1">Fleet Ledger System</p>
+                        </div>
+                        <NotificationBell />
+                    </div>
                 </div>
 
                 <div className="flex items-center justify-between p-4 md:hidden border-b border-slate-800">

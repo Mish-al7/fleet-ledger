@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { Calendar as CalendarIcon, MapPin, Clock, Car, FileText, Eye, Check, X, Filter, ChevronDown, Trash2, Edit, Plus, Download } from 'lucide-react';
 import BookingEditModal from './BookingEditModal';
 import BookingCreateModal from './BookingCreateModal';
@@ -195,6 +196,8 @@ export default function AdminBookingsPage() {
     const [actionLoading, setActionLoading] = useState(false);
     const [downloadLoading, setDownloadLoading] = useState(false);
     const [viewMode, setViewMode] = useState('list'); // 'list' | 'calendar'
+    const [page, setPage] = useState(1);
+    const [pagination, setPagination] = useState({ total: 0, totalPages: 1 });
 
     // Filters
     const [statusFilter, setStatusFilter] = useState('all');
@@ -204,9 +207,44 @@ export default function AdminBookingsPage() {
     const [sortField, setSortField] = useState('createdAt');
     const [sortOrder, setSortOrder] = useState('desc');
 
+    // Use query params to auto-open notifications
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const pathname = usePathname();
+    const autoOpenBookingId = searchParams.get('booking_id');
+
     useEffect(() => {
         fetchBookings();
         fetchVehicles();
+    }, [statusFilter, vehicleFilter, dateFrom, dateTo, sortField, sortOrder, page]);
+
+    // Effect to handle auto-opening a booking from URL
+    useEffect(() => {
+        if (autoOpenBookingId && bookings.length > 0 && !selectedBooking) {
+            const bookingToOpen = bookings.find(b => b._id === autoOpenBookingId);
+            if (bookingToOpen) {
+                setSelectedBooking(bookingToOpen);
+                // Clear the query parameter so closing the modal doesn't re-trigger this
+                router.replace(pathname, { scroll: false });
+            } else {
+                fetch(`/api/bookings?vehicle_id=&status=all&limit=100`)
+                .then(res => res.json())
+                .then(json => {
+                    if (json.success) {
+                       const found = json.data.find(b => b._id === autoOpenBookingId)
+                       if(found) {
+                           setSelectedBooking(found);
+                           router.replace(pathname, { scroll: false });
+                       }
+                    }
+                }).catch(console.error);
+            }
+        }
+    }, [autoOpenBookingId, bookings, selectedBooking, pathname, router]);
+
+    // Reset to page 1 when filters change
+    useEffect(() => {
+        if (page !== 1) setPage(1);
     }, [statusFilter, vehicleFilter, dateFrom, dateTo, sortField, sortOrder]);
 
     async function fetchVehicles() {
@@ -232,12 +270,17 @@ export default function AdminBookingsPage() {
             if (dateTo) params.append('end_date', dateTo);
             params.append('sortField', sortField);
             params.append('sortOrder', sortOrder);
+            params.append('page', page);
+            params.append('limit', 15);
 
             const res = await fetch(`/api/bookings?${params.toString()}`);
             const json = await res.json();
 
             if (json.success) {
                 setBookings(json.data);
+                if (json.pagination) {
+                    setPagination(json.pagination);
+                }
             } else {
                 setError(json.error || 'Failed to fetch bookings');
             }
@@ -570,6 +613,45 @@ export default function AdminBookingsPage() {
                                 ))}
                             </tbody>
                         </table>
+                    </div>
+                )}
+
+                {/* Pagination Controls */}
+                {viewMode === 'list' && !loading && bookings.length > 0 && pagination.totalPages > 1 && (
+                    <div className="p-4 border-t border-slate-800 flex items-center justify-between">
+                        <div className="text-sm text-slate-500">
+                            Showing <span className="text-white font-medium">{bookings.length}</span> of <span className="text-white font-medium">{pagination.total}</span> bookings
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => setPage(p => Math.max(1, p - 1))}
+                                disabled={page === 1}
+                                className="px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-white text-xs disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-700 transition-colors"
+                            >
+                                Previous
+                            </button>
+                            <div className="flex items-center gap-1">
+                                {[...Array(pagination.totalPages)].map((_, i) => (
+                                    <button
+                                        key={i + 1}
+                                        onClick={() => setPage(i + 1)}
+                                        className={`w-8 h-8 rounded-lg text-xs font-medium transition-all ${page === i + 1
+                                                ? 'bg-blue-600 text-white'
+                                                : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'
+                                            }`}
+                                    >
+                                        {i + 1}
+                                    </button>
+                                ))}
+                            </div>
+                            <button
+                                onClick={() => setPage(p => Math.min(pagination.totalPages, p + 1))}
+                                disabled={page === pagination.totalPages}
+                                className="px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-white text-xs disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-700 transition-colors"
+                            >
+                                Next
+                            </button>
+                        </div>
                     </div>
                 )}
             </div>

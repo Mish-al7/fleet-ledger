@@ -46,5 +46,6 @@ const UserSchema = new mongoose.Schema({
 
 // Email unique per company (not globally)
 UserSchema.index({ email: 1, company_id: 1 }, { unique: true });
+UserSchema.index({ company_id: 1, role: 1 });
 
 export default mongoose.models.User || mongoose.model('User', UserSchema);

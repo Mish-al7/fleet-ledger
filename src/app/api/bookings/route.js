@@ -22,9 +22,12 @@ export async function GET(req) {
         const vehicleId = searchParams.get('vehicle_id');
         const startDate = searchParams.get('start_date');
         const endDate = searchParams.get('end_date');
-
         const sortField = searchParams.get('sortField') || 'createdAt';
         const sortOrder = searchParams.get('sortOrder') === 'asc' ? 1 : -1;
+
+        const page = parseInt(searchParams.get('page')) || 1;
+        const limit = parseInt(searchParams.get('limit')) || 15;
+        const skip = (page - 1) * limit;
 
         // Build query - always scoped to company
         const query = { company_id };
@@ -46,13 +49,25 @@ export async function GET(req) {
             query.journey_return_date = { $lte: new Date(endDate) };
         }
 
+        const total = await Booking.countDocuments(query);
         const bookings = await Booking.find(query)
             .populate('vehicle_id', 'vehicle_no')
             .populate('created_by', 'name email')
             .sort({ [sortField]: sortOrder })
+            .skip(skip)
+            .limit(limit)
             .lean();
 
-        return NextResponse.json({ success: true, data: bookings });
+        return NextResponse.json({
+            success: true,
+            data: bookings,
+            pagination: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit)
+            }
+        });
     } catch (error) {
         console.error('GET /api/bookings error:', error);
         return NextResponse.json({ error: error.message }, { status: 500 });
@@ -127,6 +142,18 @@ export async function POST(req) {
             vehicle_no: vehicle.vehicle_no,
             status: role === 'admin' ? 'approved' : 'pending',
         });
+
+        // If a driver creates a booking, notify the admins of the company
+        if (role === 'driver') {
+            const Notification = (await import('@/models/Notification')).default;
+            await Notification.create({
+                company_id: company_id,
+                title: 'New Booking Request',
+                message: `Driver ${session.user.name || session.user.email} created a new booking (${booking_no}).`,
+                type: 'booking_created',
+                related_id: booking._id,
+            });
+        }
 
         // Populate response
         const populatedBooking = await Booking.findById(booking._id)

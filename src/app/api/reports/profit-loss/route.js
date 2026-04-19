@@ -37,30 +37,6 @@ export async function GET(req) {
         if (vehicle_id) tripMatch.vehicle_id = new mongoose.Types.ObjectId(vehicle_id);
         if (driver_id) tripMatch.driver_id = new mongoose.Types.ObjectId(driver_id);
 
-        // Aggregate trips by date; filter null _id so no null key leaks into dateMap
-        const tripRows = await Trip.aggregate([
-            { $match: tripMatch },
-            {
-                $group: {
-                    _id: { $dateToString: { format: '%Y-%m-%d', date: '$trip_date' } },
-                    income: { $sum: '$income' },
-                    trip_expenses: { $sum: '$total_expenses' },
-                    trip_count: { $sum: 1 },
-                },
-            },
-            { $match: { _id: { $ne: null } } },
-            {
-                $project: {
-                    _id: 0,
-                    date: '$_id',
-                    income: 1,
-                    trip_expenses: 1,
-                    trip_count: 1,
-                },
-            },
-            { $sort: { date: 1 } },
-        ]);
-
         // Build admin expense match — same null guard on start_date
         const expenseMatch = { company_id, start_date: { $type: 'date' } };
         if (from || to) {
@@ -74,59 +50,59 @@ export async function GET(req) {
         }
         if (vehicle_id) expenseMatch.vehicle_id = new mongoose.Types.ObjectId(vehicle_id);
 
-        const adminExpenseRows = await AdminExpense.aggregate([
-            { $match: expenseMatch },
+        // Use a single aggregation pipeline for both Trip and AdminExpense data
+        const rows = await Trip.aggregate([
+            { $match: tripMatch },
+            {
+                $project: {
+                    date: { $dateToString: { format: '%Y-%m-%d', date: '$trip_date' } },
+                    income: 1,
+                    trip_expenses: '$total_expenses',
+                    admin_expenses: { $literal: 0 },
+                    trip_count: { $literal: 1 },
+                }
+            },
+            {
+                $unionWith: {
+                    coll: AdminExpense.collection.name,
+                    pipeline: [
+                        { $match: expenseMatch },
+                        {
+                            $project: {
+                                date: { $dateToString: { format: '%Y-%m-%d', date: '$start_date' } },
+                                income: { $literal: 0 },
+                                trip_expenses: { $literal: 0 },
+                                admin_expenses: '$amount',
+                                trip_count: { $literal: 0 },
+                            }
+                        }
+                    ]
+                }
+            },
             {
                 $group: {
-                    _id: { $dateToString: { format: '%Y-%m-%d', date: '$start_date' } },
-                    admin_expenses: { $sum: '$amount' },
-                },
+                    _id: '$date',
+                    income: { $sum: '$income' },
+                    trip_expenses: { $sum: '$trip_expenses' },
+                    admin_expenses: { $sum: '$admin_expenses' },
+                    trip_count: { $sum: '$trip_count' }
+                }
             },
             { $match: { _id: { $ne: null } } },
             {
                 $project: {
                     _id: 0,
                     date: '$_id',
+                    income: 1,
+                    trip_expenses: 1,
                     admin_expenses: 1,
-                },
+                    trip_count: 1,
+                    total_expenses: { $add: ['$trip_expenses', '$admin_expenses'] },
+                    net_profit: { $subtract: ['$income', { $add: ['$trip_expenses', '$admin_expenses'] }] }
+                }
             },
-            { $sort: { date: 1 } },
+            { $sort: { date: 1 } }
         ]);
-
-        // Merge into a unified date map — skip any row that somehow has a falsy date
-        const dateMap = {};
-        for (const row of tripRows) {
-            if (!row.date) continue;
-            dateMap[row.date] = {
-                date: row.date,
-                income: row.income,
-                trip_expenses: row.trip_expenses,
-                admin_expenses: 0,
-                trip_count: row.trip_count,
-            };
-        }
-        for (const row of adminExpenseRows) {
-            if (!row.date) continue;
-            if (dateMap[row.date]) {
-                dateMap[row.date].admin_expenses = row.admin_expenses;
-            } else {
-                dateMap[row.date] = {
-                    date: row.date,
-                    income: 0,
-                    trip_expenses: 0,
-                    admin_expenses: row.admin_expenses,
-                    trip_count: 0,
-                };
-            }
-        }
-
-        const rows = Object.values(dateMap)
-            .sort((a, b) => a.date.localeCompare(b.date))
-            .map(row => ({
-                ...row,
-                total_expenses: row.trip_expenses + row.admin_expenses,
-                net_profit: row.income - (row.trip_expenses + row.admin_expenses),
-            }));
 
         // Summary totals
         const totals = rows.reduce(
