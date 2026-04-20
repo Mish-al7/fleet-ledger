@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import dbConnect from '@/lib/dbConnect';
 import Booking from '@/models/Booking';
 import Vehicle from '@/models/Vehicle';
+import Notification from '@/models/Notification';
 
 // GET - List bookings (driver: own only, admin: all)
 export async function GET(req) {
@@ -122,6 +123,20 @@ export async function POST(req) {
                     vehicle_no: vehicle.vehicle_no,
                     status: 'pending',
                 });
+
+                if (session.user.role === 'driver') {
+                    try {
+                        await Notification.create({
+                            title: 'New Booking Request',
+                            message: `${session.user.name || 'A driver'} has requested a new booking for ${vehicle.vehicle_no}.`,
+                            type: 'booking_created',
+                            related_id: booking._id
+                        });
+                    } catch (notifErr) {
+                        console.error('Failed to create notification', notifErr);
+                    }
+                }
+
                 break; // specific: Success!
             } catch (error) {
                 // Check for duplicate key error on booking_no

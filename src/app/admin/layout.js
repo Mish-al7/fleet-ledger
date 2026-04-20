@@ -6,6 +6,7 @@ import { LayoutDashboard, FileText, Settings, LogOut, Truck, Users, CalendarChec
 import { signOut, useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import NotificationBell from '@/components/ui/NotificationBell';
 
 export default function AdminLayout({ children }) {
     const pathname = usePathname();
@@ -58,13 +59,16 @@ export default function AdminLayout({ children }) {
                 <h1 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
                     Admin Portal
                 </h1>
-                <button
-                    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                    className="p-2 -mr-2 text-slate-400 hover:text-white"
-                    aria-label="Toggle navigation menu"
-                >
-                    {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-                </button>
+                <div className="flex items-center gap-2">
+                    <NotificationBell />
+                    <button
+                        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                        className="p-2 -mr-2 text-slate-400 hover:text-white"
+                        aria-label="Toggle navigation menu"
+                    >
+                        {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                    </button>
+                </div>
             </header>
 
             {/* Mobile Backdrop Overlay */}
@@ -134,9 +138,22 @@ export default function AdminLayout({ children }) {
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 overflow-auto bg-slate-950 p-4 md:p-6 w-full max-w-full">
-                {children}
-            </main>
+            <div className="flex-1 flex flex-col min-h-screen overflow-hidden bg-slate-950 w-full max-w-full relative">
+                {/* Desktop Header */}
+                <header className="hidden md:flex items-center justify-end px-6 py-4 border-b border-slate-800/50 bg-slate-950 z-10 sticky top-0">
+                    <div className="flex items-center gap-4">
+                        <NotificationBell />
+                        <div className="text-sm text-right">
+                            <p className="text-white font-medium">{session?.user?.name}</p>
+                            <p className="text-slate-500 text-xs">{session?.user?.email}</p>
+                        </div>
+                    </div>
+                </header>
+                
+                <main className="flex-1 overflow-auto p-4 md:p-6 w-full h-full">
+                    {children}
+                </main>
+            </div>
         </div>
     );
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Calendar as CalendarIcon, MapPin, Clock, Car, FileText, Eye, Check, X, Filter, ChevronDown, Trash2, Edit, Plus, Download } from 'lucide-react';
 import BookingEditModal from './BookingEditModal';
 import BookingCreateModal from './BookingCreateModal';
@@ -161,11 +162,24 @@ export default function AdminBookingsPage() {
     const [dateTo, setDateTo] = useState('');
     const [sortField, setSortField] = useState('createdAt');
     const [sortOrder, setSortOrder] = useState('desc');
+    
+    const searchParams = useSearchParams();
+    const bookingIdQuery = searchParams.get('booking_id');
 
     useEffect(() => {
         fetchBookings();
         fetchVehicles();
     }, [statusFilter, vehicleFilter, dateFrom, dateTo, sortField, sortOrder]);
+
+    // Auto-open booking from URL notification
+    useEffect(() => {
+        if (bookingIdQuery && bookings.length > 0) {
+            const found = bookings.find(b => b._id === bookingIdQuery);
+            if (found && (!selectedBooking || selectedBooking._id !== found._id)) {
+                setSelectedBooking(found);
+            }
+        }
+    }, [bookingIdQuery, bookings]);
 
     async function fetchVehicles() {
         try {
