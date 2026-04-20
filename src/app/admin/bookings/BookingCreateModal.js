@@ -52,6 +52,24 @@ export default function BookingCreateModal({ vehicles, onClose, onCreate }) {
     const [error, setError] = useState('');
     const [availabilityError, setAvailabilityError] = useState('');
     const [checkingAvailability, setCheckingAvailability] = useState(false);
+    const [drivers, setDrivers] = useState([]);
+
+    // Fetch drivers
+    useEffect(() => {
+        async function fetchDrivers() {
+            try {
+                const res = await fetch('/api/users');
+                const json = await res.json();
+                if (json.success) {
+                    // Filter for drivers only if the API returns all users
+                    setDrivers(json.data.filter(u => u.role === 'driver'));
+                }
+            } catch (err) {
+                console.error('Failed to fetch drivers', err);
+            }
+        }
+        fetchDrivers();
+    }, []);
 
     // Initial form data
     const [formData, setFormData] = useState({
@@ -76,6 +94,7 @@ export default function BookingCreateModal({ vehicles, onClose, onCreate }) {
         other_expenses: '',
         driver_food_accommodation: '',
         vehicle_id: '',
+        driver_id: '',
     });
 
     // Check availability when relevant fields change
@@ -228,6 +247,27 @@ export default function BookingCreateModal({ vehicles, onClose, onCreate }) {
                                         <option value="" disabled>Select Vehicle</option>
                                         {vehicles.map(v => (
                                             <option key={v._id} value={v._id}>{v.vehicle_no}{v.nickname ? ` - ${v.nickname}` : ''}</option>
+                                        ))}
+                                    </select>
+                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Driver Selection */}
+                            <div className="space-y-1">
+                                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Assign Driver (Optional)</label>
+                                <div className="relative group">
+                                    <select
+                                        name="driver_id"
+                                        value={formData.driver_id}
+                                        onChange={handleChange}
+                                        className="block w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 appearance-none transition-all"
+                                    >
+                                        <option value="">Unassigned (Driver can pick up later)</option>
+                                        {drivers.map(d => (
+                                            <option key={d._id} value={d._id}>{d.name} ({d.email})</option>
                                         ))}
                                     </select>
                                     <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">

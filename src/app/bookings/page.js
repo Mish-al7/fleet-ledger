@@ -4,8 +4,9 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import Navbar from '@/app/components/Navbar';
 import BookingCalendar from '@/app/components/BookingCalendar';
-import { Calendar as CalendarIcon, MapPin, Clock, Car, FileText, Eye, ChevronDown } from 'lucide-react';
+import { Calendar as CalendarIcon, MapPin, Clock, Car, FileText, Eye, ChevronDown, Plus } from 'lucide-react';
 import { formatDate } from '@/lib/dateUtils';
+import { useRouter } from 'next/navigation';
 
 // Status Badge Component
 const StatusBadge = ({ status }) => {
@@ -31,12 +32,21 @@ const StatusBadge = ({ status }) => {
 // Booking Card Component
 const BookingCard = ({ booking, onViewDetails, activeTab, session }) => {
     let borderColor = 'border-slate-800'; // default
-    
+
     // booking.created_by could be an object if populated, or a string ID
     const creatorId = booking.created_by?._id || booking.created_by;
+
+    const userId = session?.user?.id;
+    const isMine = creatorId === userId;
     
-    if (creatorId === session?.user?.id) {
+    // Defensive check for driver_id as string or populated object
+    const bookingDriverId = booking.driver_id?._id || booking.driver_id;
+    const isAssignedToMe = userId && bookingDriverId && bookingDriverId.toString() === userId.toString();
+
+    if (isMine) {
         borderColor = 'border-emerald-500/50'; // Green = my booking
+    } else if (isAssignedToMe) {
+        borderColor = 'border-purple-500/50'; // Purple = assigned to me
     } else if (booking.created_by?.role === 'admin') {
         borderColor = 'border-blue-500/50'; // Blue = admin booking
     } else {
@@ -59,6 +69,12 @@ const BookingCard = ({ booking, onViewDetails, activeTab, session }) => {
                 </div>
                 <StatusBadge status={booking.status} />
             </div>
+
+            {isAssignedToMe && !isMine && (
+                <div className="px-2 py-0.5 bg-purple-500/10 border border-purple-500/20 rounded text-[10px] text-purple-400 font-bold uppercase tracking-widest inline-block">
+                    Assigned Trip
+                </div>
+            )}
 
             <div className="space-y-2 text-sm">
                 <div className="flex items-center gap-2 text-slate-400">
@@ -93,8 +109,8 @@ const BookingCard = ({ booking, onViewDetails, activeTab, session }) => {
                         Created By: <span className="text-slate-300">{booking.created_by?.name || 'Unknown'}</span>
                     </div>
                 )}
-                
-                {!isOverview && (
+
+                {( !isOverview || isAssignedToMe) && (
                     <button
                         onClick={() => onViewDetails(booking)}
                         className="text-blue-400 text-xs font-medium hover:text-blue-300 flex items-center gap-1"
@@ -109,6 +125,7 @@ const BookingCard = ({ booking, onViewDetails, activeTab, session }) => {
 
 // Detail Modal Component
 const BookingDetailModal = ({ booking, onClose }) => {
+    const router = useRouter();
     if (!booking) return null;
 
     return (
@@ -195,6 +212,46 @@ const BookingDetailModal = ({ booking, onClose }) => {
                             <div><span className="text-slate-500">Total:</span> <span className="text-white font-bold">₹ {booking.total_amount || 0}</span></div>
                         </div>
                     </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-4 pt-4 border-t border-slate-800">
+                        {booking.status === 'approved' && (
+                            <>
+                                {new Date().setHours(0,0,0,0) >= new Date(booking.journey_return_date).setHours(0,0,0,0) ? (
+                                    <button
+                                        onClick={() => {
+                                            const params = new URLSearchParams({
+                                                bookingId: booking._id,
+                                                vehicleId: booking.vehicle_id?._id || booking.vehicle_id,
+                                                tripDate: booking.journey_start_date,
+                                                tripRoute: `${booking.pickup_location || ''} → ${booking.trip_destination || ''}`
+                                            });
+                                            router.push(`/trips/new?${params.toString()}`);
+                                        }}
+                                        className="flex-1 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-all"
+                                    >
+                                        <Plus size={20} />
+                                        Create Trip
+                                    </button>
+                                ) : (
+                                    <div className="flex-1 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-slate-500 text-sm font-medium flex items-center justify-center gap-2 border-dashed">
+                                        <CalendarIcon size={16} /> Available from {new Date(booking.journey_return_date).toLocaleDateString()}
+                                    </div>
+                                )}
+                            </>
+                        )}
+                        {booking.status === 'completed' && (
+                            <button
+                                onClick={() => {
+                                    router.push(`/trips`); // Driver sees their trips here
+                                }}
+                                className="flex-1 py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-all"
+                            >
+                                <Eye size={20} />
+                                View Trip
+                            </button>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>
@@ -262,8 +319,8 @@ export default function MyBookingsPage() {
                     <button
                         onClick={() => setActiveTab('my')}
                         className={`pb-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'my'
-                                ? 'border-emerald-500 text-emerald-400'
-                                : 'border-transparent text-slate-400 hover:text-slate-300'
+                            ? 'border-emerald-500 text-emerald-400'
+                            : 'border-transparent text-slate-400 hover:text-slate-300'
                             }`}
                     >
                         My Bookings
@@ -271,8 +328,8 @@ export default function MyBookingsPage() {
                     <button
                         onClick={() => setActiveTab('overview')}
                         className={`pb-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'overview'
-                                ? 'border-emerald-500 text-emerald-400'
-                                : 'border-transparent text-slate-400 hover:text-slate-300'
+                            ? 'border-emerald-500 text-emerald-400'
+                            : 'border-transparent text-slate-400 hover:text-slate-300'
                             }`}
                     >
                         All Bookings
@@ -384,7 +441,8 @@ export default function MyBookingsPage() {
                             <BookingCalendar
                                 bookings={filteredBookings}
                                 onBookingClick={(booking) => {
-                                    if (activeTab !== 'overview') {
+                                    const isAssignedToMe = booking.driver_id === session?.user?.id || booking.driver_id?._id === session?.user?.id;
+                                    if (activeTab !== 'overview' || isAssignedToMe) {
                                         setSelectedBooking(booking);
                                     }
                                 }}
@@ -395,7 +453,7 @@ export default function MyBookingsPage() {
                 )}
             </main>
 
-            {selectedBooking && activeTab !== 'overview' && (
+            {selectedBooking && (
                 <BookingDetailModal
                     booking={selectedBooking}
                     onClose={() => setSelectedBooking(null)}

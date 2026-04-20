@@ -32,9 +32,12 @@ export async function GET(req) {
         // Build query - always scoped to company
         const query = { company_id };
 
-        // Drivers can only see their own bookings
+        // Drivers can only see their own or assigned bookings
         if (session.user.role === 'driver') {
-            query.created_by = session.user.id;
+            query.$or = [
+                { created_by: session.user.id },
+                { driver_id: session.user.id }
+            ];
         }
 
         // Apply filters
@@ -53,6 +56,7 @@ export async function GET(req) {
         const bookings = await Booking.find(query)
             .populate('vehicle_id', 'vehicle_no')
             .populate('created_by', 'name email')
+            .populate('driver_id', 'name email')
             .sort({ [sortField]: sortOrder })
             .skip(skip)
             .limit(limit)
@@ -131,6 +135,11 @@ export async function POST(req) {
 
         // Generate booking number (scoped to company)
         const booking_no = await Booking.generateBookingNo(company_id);
+
+        // Clean up driver_id if empty string
+        if (body.driver_id === "") {
+            body.driver_id = null;
+        }
 
         // Create booking
         const booking = await Booking.create({

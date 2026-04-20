@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Navbar from '@/app/components/Navbar';
 import { Calendar, Truck, MapPin, DollarSign, Save } from 'lucide-react';
 
@@ -27,18 +27,26 @@ const InputGroup = ({ label, name, value, onChange, type = "text", icon: Icon, p
     </div>
 );
 
-export default function NewTripPage() {
+function NewTripForm() {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const [vehicles, setVehicles] = useState([]);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState('');
 
+    // Pre-fill parameters
+    const bookingId = searchParams.get('bookingId');
+    const qVehicleId = searchParams.get('vehicleId');
+    const qTripRoute = searchParams.get('tripRoute');
+    const qTripDate = searchParams.get('tripDate');
+
     // Form State
     const [formData, setFormData] = useState({
-        trip_date: new Date().toISOString().split('T')[0],
-        vehicle_id: '',
-        trip_route: '',
+        bookingId: bookingId || '',
+        trip_date: qTripDate ? new Date(qTripDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        vehicle_id: qVehicleId || '',
+        trip_route: qTripRoute || '',
         actual_driver_name: '',
         income: '',
         fuel: '',
@@ -126,7 +134,8 @@ export default function NewTripPage() {
                 air: '',
                 deposit_to_kdr_bank: '',
                 other_expense: '',
-                notes: ''
+                notes: '',
+                bookingId: ''
             }));
 
             // Scroll to top to show success message
@@ -290,5 +299,13 @@ export default function NewTripPage() {
 
             <Navbar />
         </div>
+    );
+}
+
+export default function NewTripPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-400">Loading...</div>}>
+            <NewTripForm />
+        </Suspense>
     );
 }

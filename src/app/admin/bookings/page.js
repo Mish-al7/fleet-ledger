@@ -32,6 +32,7 @@ const StatusBadge = ({ status }) => {
 
 // Booking Detail Modal
 const BookingDetailModal = ({ booking, onClose, onApprove, onReject, actionLoading, onDownloadPDF, downloadLoading }) => {
+    const router = useRouter();
     if (!booking) return null;
 
     return (
@@ -143,6 +144,41 @@ const BookingDetailModal = ({ booking, onClose, onApprove, onReject, actionLoadi
                         </div>
                     </div>
 
+                    {/* Action Buttons */}
+                    <div className="flex gap-4 pt-4 border-t border-slate-800">
+                        {booking.status === 'pending' && (
+                            <>
+                                <button
+                                    onClick={() => onApprove(booking._id)}
+                                    disabled={actionLoading}
+                                    className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-600 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-all"
+                                >
+                                    <Check size={20} />
+                                    Approve
+                                </button>
+                                <button
+                                    onClick={() => onReject(booking._id)}
+                                    disabled={actionLoading}
+                                    className="flex-1 py-3 bg-red-600 hover:bg-red-500 disabled:bg-slate-600 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-all"
+                                >
+                                    <X size={20} />
+                                    Reject
+                                </button>
+                            </>
+                        )}
+                        {booking.status === 'completed' && (
+                            <button
+                                onClick={() => {
+                                    router.push(`/admin/ledger/${booking.vehicle_id?._id || booking.vehicle_id}`);
+                                }}
+                                className="flex-1 py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-all"
+                            >
+                                <Eye size={20} />
+                                View Trip
+                            </button>
+                        )}
+                    </div>
+
                     {/* Created By */}
                     <div className="flex items-center justify-between gap-4">
                         <div className="text-xs text-slate-500">
@@ -158,27 +194,6 @@ const BookingDetailModal = ({ booking, onClose, onApprove, onReject, actionLoadi
                         </button>
                     </div>
 
-                    {/* Action Buttons (only for pending) */}
-                    {booking.status === 'pending' && (
-                        <div className="flex gap-4 pt-4 border-t border-slate-800">
-                            <button
-                                onClick={() => onApprove(booking._id)}
-                                disabled={actionLoading}
-                                className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-600 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-all"
-                            >
-                                <Check size={20} />
-                                Approve Booking
-                            </button>
-                            <button
-                                onClick={() => onReject(booking._id)}
-                                disabled={actionLoading}
-                                className="flex-1 py-3 bg-red-600 hover:bg-red-500 disabled:bg-slate-600 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-all"
-                            >
-                                <X size={20} />
-                                Reject Booking
-                            </button>
-                        </div>
-                    )}
                 </div>
             </div>
         </div>
@@ -228,16 +243,16 @@ export default function AdminBookingsPage() {
                 router.replace(pathname, { scroll: false });
             } else {
                 fetch(`/api/bookings?vehicle_id=&status=all&limit=100`)
-                .then(res => res.json())
-                .then(json => {
-                    if (json.success) {
-                       const found = json.data.find(b => b._id === autoOpenBookingId)
-                       if(found) {
-                           setSelectedBooking(found);
-                           router.replace(pathname, { scroll: false });
-                       }
-                    }
-                }).catch(console.error);
+                    .then(res => res.json())
+                    .then(json => {
+                        if (json.success) {
+                            const found = json.data.find(b => b._id === autoOpenBookingId)
+                            if (found) {
+                                setSelectedBooking(found);
+                                router.replace(pathname, { scroll: false });
+                            }
+                        }
+                    }).catch(console.error);
             }
         }
     }, [autoOpenBookingId, bookings, selectedBooking, pathname, router]);
@@ -636,8 +651,8 @@ export default function AdminBookingsPage() {
                                         key={i + 1}
                                         onClick={() => setPage(i + 1)}
                                         className={`w-8 h-8 rounded-lg text-xs font-medium transition-all ${page === i + 1
-                                                ? 'bg-blue-600 text-white'
-                                                : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'
+                                            ? 'bg-blue-600 text-white'
+                                            : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'
                                             }`}
                                     >
                                         {i + 1}

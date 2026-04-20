@@ -24,8 +24,13 @@ export async function GET(req) {
 
         const companyId = session.user.companyId || session.user.company_id;
 
-        // Build query for own bookings
-        const query = { created_by: session.user.id };
+        // Build query for own or assigned bookings
+        const query = {
+            $or: [
+                { created_by: session.user.id },
+                { driver_id: session.user.id }
+            ]
+        };
         if (companyId) {
             query.company_id = companyId;
         }
@@ -37,6 +42,7 @@ export async function GET(req) {
         const bookings = await Booking.find(query)
             .populate('vehicle_id', 'vehicle_no')
             .populate('created_by', 'name email role')
+            .populate('driver_id', 'name email')
             .sort({ [sortField]: sortOrder })
             .lean();
 

@@ -44,7 +44,8 @@ export default function EditTripModal({ trip, onClose, onUpdate }) {
         air: '',
         deposit_to_kdr_bank: '',
         other_expense: '',
-        notes: ''
+        notes: '',
+        bookingId: ''
     });
 
     useEffect(() => {
@@ -64,7 +65,8 @@ export default function EditTripModal({ trip, onClose, onUpdate }) {
                 air: trip.air || '',
                 deposit_to_kdr_bank: trip.deposit_to_kdr_bank || '',
                 other_expense: trip.other_expense || '',
-                notes: trip.notes || ''
+                notes: trip.notes || '',
+                bookingId: trip.bookingId || ''
             });
         }
     }, [trip]);
@@ -142,6 +144,13 @@ export default function EditTripModal({ trip, onClose, onUpdate }) {
                         {error && (
                             <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
                                 {error}
+                            </div>
+                        )}
+
+                        {formData.bookingId && (
+                            <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl px-4 py-3 flex items-center gap-3">
+                                <div className="text-sm font-medium text-slate-400">Linked Booking ID:</div>
+                                <div className="font-mono text-sm text-blue-400">{formData.bookingId}</div>
                             </div>
                         )}
 

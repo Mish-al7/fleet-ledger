@@ -22,14 +22,18 @@ export async function GET(req, { params }) {
         const booking = await Booking.findOne({ _id: id, company_id })
             .populate('vehicle_id', 'vehicle_no')
             .populate('created_by', 'name email')
+            .populate('driver_id', 'name email')
             .lean();
 
         if (!booking) {
             return NextResponse.json({ error: 'Booking not found' }, { status: 404 });
         }
 
-        // Drivers can only view their own bookings
-        if (session.user.role === 'driver' && booking.created_by._id.toString() !== session.user.id) {
+        // Drivers can only view their own or assigned bookings
+        const isCreator = booking.created_by?._id?.toString() === session.user.id || booking.created_by?.toString() === session.user.id;
+        const isAssignedDriver = booking.driver_id?._id?.toString() === session.user.id || booking.driver_id?.toString() === session.user.id;
+
+        if (session.user.role === 'driver' && !isCreator && !isAssignedDriver) {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
@@ -56,6 +60,11 @@ export async function PATCH(req, { params }) {
 
         // Strip any client-sent company_id
         delete body.company_id;
+
+        // Clean up driver_id if empty string
+        if (body.driver_id === "") {
+            body.driver_id = null;
+        }
 
         // Check if booking exists and belongs to company
         const existingBooking = await Booking.findOne({ _id: id, company_id });

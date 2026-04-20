@@ -65,6 +65,12 @@ const TripSchema = new mongoose.Schema({
         trim: true,
     },
 
+    bookingId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Booking',
+        required: false,
+    },
+
     // Optional: name of person who physically drove (display only, not for auth)
     actual_driver_name: {
         type: String,

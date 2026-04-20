@@ -79,6 +79,7 @@ export async function GET(req, { params }) {
                     air: { $ifNull: ["$air", 0] },
                     deposit_to_kdr_bank: { $ifNull: ["$deposit_to_kdr_bank", 0] },
                     other_expense: { $ifNull: ["$other_expense", 0] },
+                    bookingId: 1,
                     notes: 1,
                     createdAt: 1,
                     is_admin_expense: { $literal: false },

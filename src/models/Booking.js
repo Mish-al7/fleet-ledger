@@ -138,6 +138,11 @@ const BookingSchema = new mongoose.Schema({
         type: String, // Snapshot at booking creation
         required: true,
     },
+    driver_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: false,
+    },
 }, {
     timestamps: true,
 });
@@ -152,18 +157,26 @@ BookingSchema.index({ booking_no: 1, company_id: 1 }, { unique: true });
 BookingSchema.statics.generateBookingNo = async function (companyId) {
     const today = new Date();
     const dateStr = today.toISOString().slice(0, 10).replace(/-/g, '');
+    const prefix = `BK-${dateStr}`;
 
-    // Find count of bookings created today for this company
-    const startOfDay = new Date(today.setHours(0, 0, 0, 0));
-    const endOfDay = new Date(today.setHours(23, 59, 59, 999));
+    // Find the latest booking number globally (across companies) for today to avoid collisions
+    const latestBooking = await this.findOne({
+        booking_no: { $regex: `^${prefix}` }
+    })
+    .sort({ booking_no: -1 })
+    .select('booking_no')
+    .lean();
 
-    const count = await this.countDocuments({
-        company_id: companyId,
-        createdAt: { $gte: startOfDay, $lte: endOfDay }
-    });
+    let sequence = 1;
+    if (latestBooking && latestBooking.booking_no) {
+        const lastSequence = parseInt(latestBooking.booking_no.split('-')[2]);
+        if (!isNaN(lastSequence)) {
+            sequence = lastSequence + 1;
+        }
+    }
 
-    const sequence = String(count + 1).padStart(3, '0');
-    return `BK-${dateStr}-${sequence}`;
+    const sequenceStr = String(sequence).padStart(3, '0');
+    return `${prefix}-${sequenceStr}`;
 };
 
 // Static method to check vehicle availability (overlap detection)
@@ -225,14 +238,15 @@ BookingSchema.statics.checkVehicleAvailability = async function (vehicleId, star
     };
 };
 
+// Force model re-registration in development to pick up schema changes
+if (process.env.NODE_ENV === 'development') {
+    delete mongoose.models.Booking;
+}
+
 const Booking = mongoose.models.Booking || mongoose.model('Booking', BookingSchema);
 
-// If the model was already registered but lacks static methods (due to HMR), add them
-if (!Booking.generateBookingNo) {
-    Booking.generateBookingNo = BookingSchema.statics.generateBookingNo;
-}
-if (!Booking.checkVehicleAvailability) {
-    Booking.checkVehicleAvailability = BookingSchema.statics.checkVehicleAvailability;
-}
+// Ensure static methods are always up to date
+Booking.generateBookingNo = BookingSchema.statics.generateBookingNo;
+Booking.checkVehicleAvailability = BookingSchema.statics.checkVehicleAvailability;
 
 export default Booking;

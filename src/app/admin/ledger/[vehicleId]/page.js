@@ -250,7 +250,16 @@ export default function VehicleLedgerPage() {
                                             <td className="px-6 py-4 font-mono text-slate-300">
                                                 {formatDate(row.trip_date)}
                                             </td>
-                                            <td className="px-6 py-4">{row.trip_route}</td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex flex-col">
+                                                    <span>{row.trip_route}</span>
+                                                    {row.bookingId && (
+                                                        <span className="text-[10px] text-blue-400 font-bold bg-blue-500/10 px-1 rounded w-fit mt-0.5">
+                                                            Linked to Booking
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </td>
                                             <td className="px-6 py-4 font-medium text-slate-300">{row.actual_driver_name || row.driver_id?.name || 'Unknown'}</td>
 
                                             <td className="px-6 py-4 text-emerald-400 font-medium">
