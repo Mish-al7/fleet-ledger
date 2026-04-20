@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import dbConnect from '@/lib/dbConnect';
 import OpeningBalance from '@/models/OpeningBalance';
+import Vehicle from '@/models/Vehicle';
 
 export async function GET(req) {
     try {
