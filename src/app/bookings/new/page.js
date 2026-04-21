@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/app/components/Navbar';
 import { Calendar, MapPin, Users, Clock, Car, Phone, User, DollarSign, Save, AlertCircle } from 'lucide-react';
+import NotificationBell from '@/components/ui/NotificationBell';
 
 // UI Components
 const InputGroup = ({ label, name, value, onChange, type = "text", icon: Icon, placeholder, required = false, rows }) => (
@@ -229,10 +230,13 @@ export default function NewBookingPage() {
         <div className="min-h-screen bg-slate-950 text-slate-100 font-sans pb-24">
             {/* Header */}
             <div className="bg-slate-900 pt-8 pb-6 px-6 shadow-lg border-b border-slate-800">
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-emerald-400 to-blue-400 bg-clip-text text-transparent">
-                    New Booking
-                </h1>
-                <p className="text-slate-400 text-sm mt-1">Reserve a vehicle for your customer</p>
+                <div className="flex justify-between items-center mb-1">
+                    <h1 className="text-2xl font-bold bg-gradient-to-r from-emerald-400 to-blue-400 bg-clip-text text-transparent">
+                        New Booking
+                    </h1>
+                    <NotificationBell />
+                </div>
+                <p className="text-slate-400 text-sm">Reserve a vehicle for your customer</p>
             </div>
 
             <main className="max-w-lg mx-auto px-6 py-6 animate-fade-in-up">

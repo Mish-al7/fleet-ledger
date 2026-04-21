@@ -6,7 +6,8 @@ import Navbar from '@/app/components/Navbar';
 import BookingCalendar from '@/app/components/BookingCalendar';
 import { Calendar as CalendarIcon, MapPin, Clock, Car, FileText, Eye, ChevronDown, Plus } from 'lucide-react';
 import { formatDate } from '@/lib/dateUtils';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import NotificationBell from '@/components/ui/NotificationBell';
 
 // Status Badge Component
 const StatusBadge = ({ status }) => {
@@ -269,6 +270,17 @@ export default function MyBookingsPage() {
     const [sortField, setSortField] = useState('createdAt');
     const [sortOrder, setSortOrder] = useState('desc');
     const [activeTab, setActiveTab] = useState('my'); // 'my' | 'overview'
+    const searchParams = useSearchParams();
+
+    useEffect(() => {
+        const bookingId = searchParams.get('booking_id');
+        if (bookingId && bookings.length > 0) {
+            const booking = bookings.find(b => b._id === bookingId);
+            if (booking) {
+                setSelectedBooking(booking);
+            }
+        }
+    }, [searchParams, bookings]);
 
     useEffect(() => {
         if (session) {
@@ -310,9 +322,12 @@ export default function MyBookingsPage() {
         <div className="min-h-screen bg-slate-950 text-slate-100 font-sans pb-24">
             {/* Header */}
             <div className="bg-slate-900 pt-8 pb-4 px-6 shadow-lg border-b border-slate-800">
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-emerald-400 to-blue-400 bg-clip-text text-transparent mb-4">
-                    Bookings
-                </h1>
+                <div className="flex justify-between items-center mb-4">
+                    <h1 className="text-2xl font-bold bg-gradient-to-r from-emerald-400 to-blue-400 bg-clip-text text-transparent">
+                        Bookings
+                    </h1>
+                    <NotificationBell />
+                </div>
 
                 {/* Tabs */}
                 <div className="flex space-x-4">

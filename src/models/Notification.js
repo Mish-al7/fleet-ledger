@@ -23,7 +23,7 @@ const NotificationSchema = new mongoose.Schema({
     type: {
         type: String,
         required: true,
-        enum: ['booking_created', 'booking_approved', 'booking_rejected', 'system'],
+        enum: ['booking_created', 'booking_approved', 'booking_rejected', 'booking_assigned', 'booking_due', 'system'],
         default: 'system',
     },
     related_id: {

@@ -114,6 +114,19 @@ export async function PATCH(req, { params }) {
             { new: true, runValidators: true }
         ).populate('vehicle_id', 'vehicle_no').populate('created_by', 'name email');
 
+        // Notification for driver if assignment changed or was added by admin
+        if (session.user.role === 'admin' && body.driver_id && body.driver_id.toString() !== existingBooking.driver_id?.toString()) {
+            const Notification = (await import('@/models/Notification')).default;
+            await Notification.create({
+                company_id: company_id,
+                recipient: body.driver_id,
+                title: 'New Trip Assigned',
+                message: `Admin has assigned you a new trip (${updatedBooking.booking_no}) from ${updatedBooking.pickup_location || 'N/A'} to ${updatedBooking.trip_destination || 'N/A'}.`,
+                type: 'booking_assigned',
+                related_id: updatedBooking._id,
+            });
+        }
+
         return NextResponse.json({ success: true, data: updatedBooking });
 
     } catch (error) {

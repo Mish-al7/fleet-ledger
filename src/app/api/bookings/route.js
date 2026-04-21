@@ -162,6 +162,17 @@ export async function POST(req) {
                 type: 'booking_created',
                 related_id: booking._id,
             });
+        } else if (role === 'admin' && body.driver_id) {
+            // If admin creates a booking and assigns a driver, notify the driver
+            const Notification = (await import('@/models/Notification')).default;
+            await Notification.create({
+                company_id: company_id,
+                recipient: body.driver_id,
+                title: 'New Trip Assigned',
+                message: `Admin has assigned you a new trip (${booking_no}) from ${body.pickup_location || 'N/A'} to ${body.trip_destination || 'N/A'}.`,
+                type: 'booking_assigned',
+                related_id: booking._id,
+            });
         }
 
         // Populate response

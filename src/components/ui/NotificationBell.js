@@ -3,8 +3,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { Bell, Check, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 
-export default function NotificationBell() {
+export default function NotificationBell({ align = 'right' }) {
     const [notifications, setNotifications] = useState([]);
     const [isOpen, setIsOpen] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -42,6 +43,8 @@ export default function NotificationBell() {
 
     const unreadCount = notifications.filter(n => !n.read).length;
 
+    const { data: session } = useSession();
+
     const handleNotificationClick = async (notification) => {
         // Remove it immediately from the UI since it is now read
         setNotifications(prev => prev.filter(n => n._id !== notification._id));
@@ -60,8 +63,12 @@ export default function NotificationBell() {
             }
         }
 
-        // Navigate based on type
-        if (notification.type === 'booking_created' && notification.related_id) {
+        // Navigate based on type and role
+        if (session?.user?.role === 'driver') {
+            if (['booking_assigned', 'booking_due'].includes(notification.type) && notification.related_id) {
+                router.push(`/bookings?booking_id=${notification.related_id}`);
+            }
+        } else if (notification.type === 'booking_created' && notification.related_id) {
             router.push(`/admin/bookings?booking_id=${notification.related_id}`);
         }
     };
@@ -100,7 +107,7 @@ export default function NotificationBell() {
             </button>
 
             {isOpen && (
-                <div className="absolute right-0 md:left-0 md:right-auto mt-2 w-80 bg-slate-900 border border-slate-700/60 rounded-xl shadow-2xl z-50 overflow-hidden ring-1 ring-black/5">
+                <div className={`absolute ${align === 'right' ? 'right-0 origin-top-right' : 'left-0 origin-top-left'} mt-2 w-80 bg-slate-900 border border-slate-700/60 rounded-xl shadow-2xl z-50 overflow-hidden ring-1 ring-black/5`}>
                     <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800 bg-slate-900/50 backdrop-blur-sm">
                         <h3 className="font-semibold text-slate-200">Notifications</h3>
                         {unreadCount > 0 && (

@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Navbar from '@/app/components/Navbar';
 import { Calendar, Truck, MapPin, DollarSign, Save } from 'lucide-react';
+import NotificationBell from '@/components/ui/NotificationBell';
 
 // UI Components
 const InputGroup = ({ label, name, value, onChange, type = "text", icon: Icon, placeholder, required = false }) => (
@@ -151,10 +152,13 @@ function NewTripForm() {
         <div className="min-h-screen bg-slate-950 text-slate-100 font-sans pb-24">
             {/* Header */}
             <div className="bg-slate-900 pt-8 pb-6 px-6 shadow-lg border-b border-slate-800">
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
-                    New Trip Entry
-                </h1>
-                <p className="text-slate-400 text-sm mt-1">Log your journey details below</p>
+                <div className="flex justify-between items-center mb-1">
+                    <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
+                        New Trip Entry
+                    </h1>
+                    <NotificationBell />
+                </div>
+                <p className="text-slate-400 text-sm">Log your journey details below</p>
             </div>
 
             <main className="max-w-md mx-auto px-6 py-6 animate-fade-in-up">

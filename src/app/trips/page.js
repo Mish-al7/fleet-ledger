@@ -7,6 +7,7 @@ import EditTripModal from '@/app/components/EditTripModal';
 import { Truck, MapPin, FileText, PlusCircle, Edit } from 'lucide-react';
 import { formatDate } from '@/lib/dateUtils';
 import Link from 'next/link';
+import NotificationBell from '@/components/ui/NotificationBell';
 
 export default function MyTripsPage() {
     const { data: session } = useSession();
@@ -51,12 +52,15 @@ export default function MyTripsPage() {
                     <h1 className="text-2xl font-bold bg-gradient-to-r from-emerald-400 to-blue-400 bg-clip-text text-transparent">
                         Recent Trips
                     </h1>
-                    <Link
-                        href="/trips/new"
-                        className="flex items-center gap-1 text-sm bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg shadow-md transition-colors"
-                    >
-                        <PlusCircle size={16} /> New Trip
-                    </Link>
+                    <div className="flex items-center gap-3">
+                        <NotificationBell />
+                        <Link
+                            href="/trips/new"
+                            className="flex items-center gap-1 text-sm bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg shadow-md transition-colors"
+                        >
+                            <PlusCircle size={16} /> New Trip
+                        </Link>
+                    </div>
                 </div>
                 <p className="text-slate-400 text-sm">Your recently logged journeys.</p>
             </div>

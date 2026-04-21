@@ -92,7 +92,7 @@ export default function AdminLayout({ children }) {
                             </h1>
                             <p className="text-xs text-slate-500 mt-1">Fleet Ledger System</p>
                         </div>
-                        <NotificationBell />
+                        <NotificationBell align="left" />
                     </div>
                 </div>
 
