@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSession } from 'next-auth/react';
 import Navbar from '@/app/components/Navbar';
 import BookingCalendar from '@/app/components/BookingCalendar';
@@ -259,7 +259,7 @@ const BookingDetailModal = ({ booking, onClose }) => {
     );
 };
 
-export default function MyBookingsPage() {
+function BookingsContent() {
     const { data: session } = useSession();
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -477,5 +477,17 @@ export default function MyBookingsPage() {
 
             <Navbar />
         </div>
+    );
+}
+
+export default function MyBookingsPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+                <div className="text-slate-400">Loading bookings...</div>
+            </div>
+        }>
+            <BookingsContent />
+        </Suspense>
     );
 }

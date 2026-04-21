@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Calendar as CalendarIcon, Wallet, FileText, Truck, CalendarCheck, TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
 import { formatDate } from '@/lib/dateUtils';
 import DateInput from '@/components/ui/DateInput';
 
-export default function DailyDashboardPage() {
+function DailyDashboardContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
 
@@ -340,5 +340,17 @@ export default function DailyDashboardPage() {
 
             </div>
         </div>
+    );
+}
+
+export default function DailyDashboardPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-[400px] flex items-center justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-emerald-500"></div>
+            </div>
+        }>
+            <DailyDashboardContent />
+        </Suspense>
     );
 }

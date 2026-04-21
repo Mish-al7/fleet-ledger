@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { Calendar as CalendarIcon, MapPin, Clock, Car, FileText, Eye, Check, X, Filter, ChevronDown, Trash2, Edit, Plus, Download } from 'lucide-react';
 import BookingEditModal from './BookingEditModal';
@@ -200,7 +200,7 @@ const BookingDetailModal = ({ booking, onClose, onApprove, onReject, actionLoadi
     );
 };
 
-export default function AdminBookingsPage() {
+function AdminBookingsContent() {
     const [bookings, setBookings] = useState([]);
     const [vehicles, setVehicles] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -701,5 +701,15 @@ export default function AdminBookingsPage() {
                 />
             )}
         </div>
+    );
+}
+
+export default function AdminBookingsPage() {
+    return (
+        <Suspense fallback={
+            <div className="p-8 text-center text-slate-400">Loading bookings...</div>
+        }>
+            <AdminBookingsContent />
+        </Suspense>
     );
 }
