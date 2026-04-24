@@ -67,9 +67,9 @@ export default function BookingCalendar({ bookings, onBookingClick, showFullVehi
 
     const getStatusColor = (status) => {
         switch (status) {
-            case 'approved': return 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/30';
-            case 'rejected': return 'bg-red-500/20 text-red-300 border-red-500/30 hover:bg-red-500/30';
-            default: return 'bg-amber-500/20 text-amber-300 border-amber-500/30 hover:bg-amber-500/30';
+            case 'approved': return 'bg-emerald-600 text-white border-emerald-500 shadow-lg shadow-emerald-900/20';
+            case 'rejected': return 'bg-red-600 text-white border-red-500 shadow-lg shadow-red-900/20';
+            default: return 'bg-amber-500 text-white border-amber-400 shadow-lg shadow-amber-900/20';
         }
     };
 
@@ -137,14 +137,12 @@ export default function BookingCalendar({ bookings, onBookingClick, showFullVehi
                                         key={booking._id}
                                         onClick={(e) => { e.stopPropagation(); onBookingClick(booking); }}
                                         className={`
-                                            w-full text-left text-[9px] sm:text-[10px] pl-1 pr-1 py-0.5 sm:py-1 rounded border whitespace-normal leading-tight break-words transition-all flex items-center mb-0.5
+                                            w-full text-left text-[9px] sm:text-[11px] font-bold px-1.5 py-1 rounded-[4px] border whitespace-normal break-all leading-[1.1] transition-all flex items-center mb-1 active:scale-[0.97]
                                             ${getStatusColor(booking.status)}
                                         `}
                                         title={`${booking.vehicle_no}\n${booking.customer_name}`}
                                     >
-                                        <span className="font-semibold">
-                                            {showFullVehicleNo ? booking.vehicle_no : booking.vehicle_no.slice(-4)}
-                                        </span>
+                                        <span>{booking.vehicle_no}</span>
                                     </button>
                                 ))}
                             </div>
