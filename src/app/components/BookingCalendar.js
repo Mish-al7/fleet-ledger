@@ -116,15 +116,15 @@ export default function BookingCalendar({ bookings, onBookingClick, showFullVehi
                         <div
                             key={idx}
                             className={`
-                                min-h-[90px] border-b border-r border-slate-800/50 p-1 flex flex-col gap-1 relative overflow-hidden transition-colors
+                                min-h-[110px] border-b border-r border-slate-800/50 p-0.5 sm:p-1 flex flex-col gap-1 relative overflow-hidden transition-colors
                                 ${!dayObj.isCurrentMonth ? 'bg-slate-900/40 text-slate-600' : 'text-slate-300 hover:bg-slate-900/80'}
                                 ${isToday ? 'bg-blue-500/5' : ''}
                             `}
                         >
-                            <div className="flex justify-between items-start">
+                            <div className="flex justify-between items-start mb-0.5">
                                 <span className={`
-                                    text-[10px] sm:text-xs font-medium w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded-full
-                                    ${isToday ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : ''}
+                                    text-[9px] sm:text-xs font-bold w-4 h-4 sm:w-6 sm:h-6 flex items-center justify-center rounded-full
+                                    ${isToday ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-slate-500'}
                                 `}>
                                     {dayObj.date.getDate()}
                                 </span>
@@ -137,7 +137,7 @@ export default function BookingCalendar({ bookings, onBookingClick, showFullVehi
                                         key={booking._id}
                                         onClick={(e) => { e.stopPropagation(); onBookingClick(booking); }}
                                         className={`
-                                            w-full text-left text-[9px] sm:text-[11px] font-bold px-1.5 py-1 rounded-[4px] border whitespace-normal break-all leading-[1.1] transition-all flex items-center mb-1 active:scale-[0.97]
+                                            w-full text-left text-[8.5px] sm:text-[11px] font-bold px-1 py-0.5 rounded-[3px] border whitespace-normal break-words leading-none transition-all flex items-center mb-0.5 active:scale-[0.97]
                                             ${getStatusColor(booking.status)}
                                         `}
                                         title={`${booking.vehicle_no}\n${booking.customer_name}`}
