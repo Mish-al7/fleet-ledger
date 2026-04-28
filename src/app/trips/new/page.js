@@ -105,10 +105,13 @@ function NewTripForm() {
         setSuccess(false);
 
         try {
+            const submissionData = { ...formData };
+            if (!submissionData.bookingId) delete submissionData.bookingId;
+
             const res = await fetch('/api/trips', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData),
+                body: JSON.stringify(submissionData),
             });
 
             const json = await res.json();

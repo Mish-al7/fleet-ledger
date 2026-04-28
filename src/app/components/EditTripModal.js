@@ -98,10 +98,13 @@ export default function EditTripModal({ trip, onClose, onUpdate }) {
         setError('');
 
         try {
+            const submissionData = { ...formData };
+            if (!submissionData.bookingId) delete submissionData.bookingId;
+
             const res = await fetch(`/api/trips/${trip._id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData),
+                body: JSON.stringify(submissionData),
             });
 
             const json = await res.json();

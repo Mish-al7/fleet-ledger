@@ -30,6 +30,11 @@ export async function POST(req) {
             body.driver_id = session.user.id;
         }
 
+        // Clean up bookingId if empty string
+        if (body.bookingId === "") {
+            body.bookingId = null;
+        }
+
         // Check for duplicate booking
         if (body.bookingId) {
             const existingTrip = await Trip.findOne({ 

@@ -42,6 +42,11 @@ export async function PUT(req, { params }) {
         // Strip any client-sent company_id
         delete body.company_id;
 
+        // Clean up bookingId if empty string
+        if (body.bookingId === "") {
+            body.bookingId = null;
+        }
+
         await dbConnect();
 
         const query = { _id: id, company_id };
