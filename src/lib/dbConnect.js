@@ -27,6 +27,9 @@ async function dbConnect() {
     if (!cached.promise) {
         const opts = {
             bufferCommands: false,
+            maxPoolSize: 10,             // Avoid exhausting MongoDB Atlas connection limits in serverless
+            serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s so serverless functions fail fast instead of hanging
+            socketTimeoutMS: 45000,       // Close sockets after 45s of inactivity
         };
 
         cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
