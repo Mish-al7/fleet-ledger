@@ -10,7 +10,7 @@ import {
     XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from 'recharts';
 
-// ─── Colour palette ───────────────────────────────────────────────────────────
+// ─── Colour palette ────────────────────────────────────────────────
 
 const PIE_COLORS = [
     '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
