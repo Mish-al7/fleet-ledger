@@ -48,7 +48,7 @@ function ChartCard({ title, children, empty }) {
     );
 }
 
-// Custom pie label
+// Custom pie label data
 const renderPieLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
     if (percent < 0.04) return null;
     const RADIAN = Math.PI / 180;
