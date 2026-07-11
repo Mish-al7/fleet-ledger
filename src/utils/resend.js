@@ -12,12 +12,12 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 export const sendWelcomeEmail = async (to, name) => {
   try {
     const { data, error } = await resend.emails.send({
-      from: 'ActivFleet <onboarding@resend.dev>', // Update to your domain in production
+      from: 'Active Fleet <onboarding@resend.dev>', // Update to your domain in production
       to: [to],
-      subject: 'Welcome to ActivFleet',
+      subject: 'Welcome to Active Fleet',
       html: `
         <div style="font-family: 'Inter', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px; color: #1a202c; border-radius: 12px; background-color: #ffffff; border: 1px solid #e2e8f0;">
-          <h1 style="color: #2d3748; font-size: 28px; margin-bottom: 24px; font-weight: 700; text-align: center;">Welcome to ActivFleet, ${name}!</h1>
+          <h1 style="color: #2d3748; font-size: 28px; margin-bottom: 24px; font-weight: 700; text-align: center;">Welcome to Active Fleet, ${name}!</h1>
           <p style="font-size: 16px; line-height: 1.6; color: #4a5568; margin-bottom: 24px;">
             We're thrilled to have you on board! Your account has been successfully created and is currently <strong>pending approval</strong> from our administration team.
           </p>
@@ -31,7 +31,7 @@ export const sendWelcomeEmail = async (to, name) => {
           </p>
           <hr style="border: 0; border-top: 1px solid #e2e8f0; margin-bottom: 32px;">
           <p style="font-size: 14px; color: #a0aec0; text-align: center; margin-bottom: 0;">
-            &copy; ${new Date().getFullYear()} FleetLedger. All rights reserved.
+            &copy; ${new Date().getFullYear()} Active Fleet. All rights reserved.
           </p>
         </div>
       `,

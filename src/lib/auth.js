@@ -4,9 +4,13 @@ import User from "@/models/User";
 import Company from "@/models/Company";
 import bcrypt from "bcryptjs";
 
+const Credentials = typeof CredentialsProvider === 'function' 
+    ? CredentialsProvider 
+    : CredentialsProvider.default;
+
 export const authOptions = {
     providers: [
-        CredentialsProvider({
+        Credentials({
             name: "Credentials",
             credentials: {
                 email: { label: "Email", type: "email" },

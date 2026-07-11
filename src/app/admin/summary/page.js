@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { TrendingUp, TrendingDown, DollarSign, Calendar, Filter } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
+import ThemeToggle from '@/components/ui/ThemeToggle';
 
 export default function DashboardPage() {
     const router = useRouter();
@@ -83,9 +84,14 @@ export default function DashboardPage() {
         <div className="space-y-8">
             {/* Header */}
             <div className="flex flex-col gap-6">
-                <div>
-                    <h1 className="text-3xl font-bold text-white">Dashboard</h1>
-                    <p className="text-slate-400 text-sm mt-1">Fleet Performance Overview</p>
+                <div className="flex justify-between items-center">
+                    <div>
+                        <h1 className="text-3xl font-bold text-white">Dashboard</h1>
+                        <p className="text-slate-400 text-sm mt-1">Fleet Performance Overview</p>
+                    </div>
+                    <div className="hidden md:block">
+                        <ThemeToggle />
+                    </div>
                 </div>
 
                 {/* Monthly Pill Filter */}

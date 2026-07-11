@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Building2, User, Mail, Lock, ArrowRight, CheckCircle2, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
+import ThemeToggle from '@/components/ui/ThemeToggle';
 
 export default function SignupPage() {
     const router = useRouter();
@@ -83,12 +84,17 @@ export default function SignupPage() {
     }
 
     return (
-        <div className="min-h-screen bg-slate-950 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
-            <div className="sm:mx-auto sm:w-full sm:max-w-md">
-                <h1 className="text-center text-3xl font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
-                    Fleet Ledger
-                </h1>
-                <h2 className="mt-6 text-center text-2xl font-extrabold text-white">
+        <div className="min-h-screen bg-slate-950 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 relative">
+            <div className="absolute top-4 right-4">
+                <ThemeToggle />
+            </div>
+            <div className="sm:mx-auto sm:w-full sm:max-w-md flex flex-col items-center justify-center gap-3">
+                <img
+                    src="/logo.jpg"
+                    alt="Active Fleet Logo"
+                    className="h-16 w-auto rounded-xl object-contain shadow-md"
+                />
+                <h2 className="mt-4 text-center text-2xl font-extrabold text-white leading-none">
                     Register your company
                 </h2>
                 <p className="mt-2 text-center text-sm text-slate-400">

@@ -5,6 +5,7 @@ import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { LogIn, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
+import ThemeToggle from '@/components/ui/ThemeToggle';
 
 function SignInContent() {
     const router = useRouter();
@@ -56,15 +57,20 @@ function SignInContent() {
 
 
     return (
-        <div className="min-h-screen flex items-center justify-center p-6 bg-slate-950">
+        <div className="min-h-screen flex items-center justify-center p-6 bg-slate-950 relative">
+            <div className="absolute top-4 right-4">
+                <ThemeToggle />
+            </div>
             <div className="w-full max-w-md space-y-8">
 
                 {/* Header */}
-                <div className="text-center">
-                    <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
-                        Fleet Ledger
-                    </h1>
-                    <p className="text-slate-400 mt-2">Sign in to your account</p>
+                <div className="text-center flex flex-col items-center justify-center gap-3">
+                    <img
+                        src="/logo.jpg"
+                        alt="Active Fleet Logo"
+                        className="h-16 w-auto rounded-xl object-contain shadow-md"
+                    />
+                    <p className="text-slate-400 mt-1">Sign in to your account</p>
                 </div>
 
                 {/* Error Alert */}

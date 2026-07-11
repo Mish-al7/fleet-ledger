@@ -6,6 +6,7 @@ import { Building2, LogOut, Shield } from 'lucide-react';
 import { signOut, useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import ThemeToggle from '@/components/ui/ThemeToggle';
 
 export default function SuperAdminLayout({ children }) {
     const pathname = usePathname();
@@ -50,11 +51,14 @@ export default function SuperAdminLayout({ children }) {
         <div className="min-h-screen bg-slate-950 flex flex-col md:flex-row">
             <aside className="w-full md:w-64 bg-slate-900 border-b md:border-b-0 md:border-r border-slate-800 flex-shrink-0">
                 <div className="p-6">
-                    <div className="flex items-center gap-2">
-                        <Shield size={20} className="text-purple-400" />
-                        <h1 className="text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                            Platform Admin
-                        </h1>
+                    <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                            <img src="/logo.jpg" alt="Active Fleet Logo" className="h-6 w-auto rounded object-contain" />
+                            <h1 className="text-lg font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                                Platform Admin
+                            </h1>
+                        </div>
+                        <ThemeToggle />
                     </div>
                     <p className="text-xs text-slate-500 mt-1">Super Admin Console</p>
                 </div>
